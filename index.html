@@ -142,7 +142,9 @@ function renderLeadChart(rows, cMap, rMap){
 
   for(let i=0;i<nineSeq.length;i++){
     const {r,half} = nineSeq[i];
-    const holes = (i+1)*9;
+
+    const adds = {};
+    const completes = {};
 
     teams.forEach(team=>{
       const teamPlayers = rows.filter(p=>p.team===team);
@@ -170,13 +172,18 @@ function renderLeadChart(rows, cMap, rMap){
         }
       });
 
-      if(!complete){
-        // stop extending series for this team
-        return;
-      }
+      completes[team] = complete;
+      adds[team] = {netAdd, parAdd};
+    });
 
-      teamCum[team] += netAdd;
-      teamParCum[team] += parAdd;
+    // only extend chart if BOTH teams have complete data for this 9-hole checkpoint
+    if(!(completes['Team Ilan'] && completes['Team Luka'])){
+      break;
+    }
+
+    teams.forEach(team=>{
+      teamCum[team] += adds[team].netAdd;
+      teamParCum[team] += adds[team].parAdd;
       const netToPar = teamCum[team] - teamParCum[team];
       teamSeries[team].push(netToPar);
     });
