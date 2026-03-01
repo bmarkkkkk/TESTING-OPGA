@@ -188,7 +188,7 @@ function renderLeadChart(rows, cMap, rMap){
   }
 
   // Chart dimensions
-  const W=520, H=320, padL=50, padR=16, padT=10, padB=36;
+  const W=520, H=320, padL=40, padR=16, padT=10, padB=28;
   const innerW=W-padL-padR, innerH=H-padT-padB;
 
   // trim to only fully-complete checkpoints (both teams)
@@ -254,8 +254,6 @@ function renderLeadChart(rows, cMap, rMap){
     ${axes}
     ${ylabels}
     ${xlabels}
-    <text x="${W/2}" y="${H-6}" text-anchor="middle" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">Holes</text>
-    <text x="16" y="${H/2}" text-anchor="middle" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui" transform="rotate(-90 12 ${H/2})">Score</text>
     ${lineIlan}
     ${lineLuka}
   </svg>`;
