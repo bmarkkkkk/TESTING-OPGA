@@ -193,17 +193,22 @@ function renderLeadChart(rows, cMap, rMap){
   const W=1040, H=300, padL=44, padR=16, padT=8, padB=24;
   const innerW=W-padL-padR, innerH=H-padT-padB;
 
-  // auto-scale Y based on data, step 5
-  const allVals = [...teamSeries['Team Ilan'], ...teamSeries['Team Luka']].filter(v=>v!=null);
+  // trim to only fully-complete checkpoints (both teams)
+  const completeSteps = Math.min(teamSeries['Team Ilan'].length, teamSeries['Team Luka'].length);
+  const seriesI = teamSeries['Team Ilan'].slice(0, completeSteps);
+  const seriesL = teamSeries['Team Luka'].slice(0, completeSteps);
+
+  // auto-scale Y based on data, step 10 for readability
+  const allVals = [...seriesI, ...seriesL].filter(v=>v!=null);
   let minY = -10, maxY = 10;
   if (allVals.length) {
     const minV = Math.min(...allVals);
     const maxV = Math.max(...allVals);
     const pad = 5;
-    minY = Math.floor((minV - pad)/5)*5;
-    maxY = Math.ceil((maxV + pad)/5)*5;
-    if (minY === maxY) { minY -= 5; maxY += 5; }
-    if ((maxY - minY) < 10) { minY -= 5; maxY += 5; }
+    minY = Math.floor((minV - pad)/10)*10;
+    maxY = Math.ceil((maxV + pad)/10)*10;
+    if (minY === maxY) { minY -= 10; maxY += 10; }
+    if ((maxY - minY) < 20) { minY -= 10; maxY += 10; }
   }
 
   function yMap(v){
@@ -215,33 +220,34 @@ function renderLeadChart(rows, cMap, rMap){
     return padL + innerW*(i/(checkpoints.length-1));
   }
 
-  // build grid lines every 2
+  // grid lines every 10
   let grid='';
-  for(let v=minY; v<=maxY; v+=2){
+  for(let v=minY; v<=maxY; v+=10){
     const y=yMap(v);
     grid += `<line x1="${padL}" y1="${y.toFixed(1)}" x2="${W-padR}" y2="${y.toFixed(1)}" stroke="#eef2ed" />`;
   }
 
-  // y labels every 2 (compact)
+  // y labels every 10
   let ylabels='';
-  for(let v=minY; v<=maxY; v+=5){
+  for(let v=minY; v<=maxY; v+=10){
     const y=yMap(v)+4;
     ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="12" fill="#7b8a8f">${v}</text>`;
   }
 
-  // x labels
+  // x labels (only completed checkpoints)
   let xlabels='';
-  checkpoints.forEach((h,i)=>{
+  for(let i=0;i<completeSteps;i++){
+    const h=checkpoints[i];
     const x=xMap(i);
     xlabels += `<text x="${x-4}" y="${H-8}" font-size="12" fill="#7b8a8f">${h}</text>`;
-  });
+  }
 
   function linePath(series){
     return series.map((v,i)=>`${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' ');
   }
 
-  const lineIlan = teamSeries['Team Ilan'].length>1 ? `<polyline fill="none" stroke="${teamColors['Team Ilan']}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${linePath(teamSeries['Team Ilan'])}"/>` : '';
-  const lineLuka = teamSeries['Team Luka'].length>1 ? `<polyline fill="none" stroke="${teamColors['Team Luka']}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${linePath(teamSeries['Team Luka'])}"/>` : '';
+  const lineIlan = seriesI.length>1 ? `<polyline fill="none" stroke="${teamColors['Team Ilan']}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${linePath(seriesI)}"/>` : '';
+  const lineLuka = seriesL.length>1 ? `<polyline fill="none" stroke="${teamColors['Team Luka']}" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" points="${linePath(seriesL)}"/>` : '';
 
   const legend = `
     <g font-family="Arial" font-size="12" fill="#444">
