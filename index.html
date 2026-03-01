@@ -159,8 +159,8 @@ function renderLeadChart(rows, cMap, rMap){
         const ch = chFor(p.hi, rCourse);
         const halfUp = ch!=null ? Math.ceil(ch/2) : null;
         const halfDown = ch!=null ? Math.floor(ch/2) : null;
-        const f = raw[`R${r} Front Gross`];
-        const b = raw[`R${r} Back Gross`];
+        const f = toNum(raw[`R${r} Front Gross`]);
+        const b = toNum(raw[`R${r} Back Gross`]);
         if(half==='F'){
           if(f==null){ complete = false; return; }
           netAdd += (f - halfUp); parAdd += (rCourse.par/2);
@@ -199,7 +199,7 @@ function renderLeadChart(rows, cMap, rMap){
   // auto-scale Y based on data, step picked for readability
   const allVals = [...seriesI, ...seriesL].filter(v=>v!=null);
   let minY = -10, maxY = 10;
-  let step = 5;
+  let step = 10;
   if (allVals.length) {
     const minV = Math.min(...allVals);
     const maxV = Math.max(...allVals);
@@ -219,7 +219,8 @@ function renderLeadChart(rows, cMap, rMap){
     return padT + innerH*(1-t);
   }
   function xMap(i){
-    return padL + innerW*(i/(checkpoints.length-1));
+    const denom = Math.max(1, completeSteps-1);
+    return padL + innerW*(i/denom);
   }
 
   // grid lines (step)
@@ -233,7 +234,7 @@ function renderLeadChart(rows, cMap, rMap){
   let ylabels='';
   for(let v=minY; v<=maxY; v+=step){
     const y=yMap(v)+4;
-    ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="13" fill="#7b8a8f">${v}</text>`;
+    ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="14" fill="#7b8a8f">${v}</text>`;
   }
 
   // x labels (only completed checkpoints)
