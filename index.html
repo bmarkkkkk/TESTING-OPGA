@@ -188,7 +188,7 @@ function renderLeadChart(rows, cMap, rMap){
   }
 
   // Chart dimensions
-  const W=520, H=320, padL=40, padR=16, padT=10, padB=28;
+  const W=520, H=320, padL=40, padR=16, padT=10, padB=40;
   const innerW=W-padL-padR, innerH=H-padT-padB;
 
   // trim to only fully-complete checkpoints (both teams)
@@ -254,6 +254,8 @@ function renderLeadChart(rows, cMap, rMap){
     ${axes}
     ${ylabels}
     ${xlabels}
+    <text x="${W/2}" y="${H-10}" text-anchor="middle" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">Holes</text>
+    <text x="20" y="${H/2}" text-anchor="middle" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui" transform="rotate(-90 12 ${H/2})">Score</text>
     ${lineIlan}
     ${lineLuka}
   </svg>`;
@@ -441,7 +443,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     const r3 = chFor(r.hi, cMap[rMap["Round 3"]]);
     const r4 = chFor(r.hi, cMap[rMap["Round 4"]]);
     return {name: r.name, hi: r.hi, r1, r2, r3, r4};
-  }).sort((a,b)=>a.name.localeCompare(b.name));
+  }).sort((a,b)=>((a.hi??1e9)-(b.hi??1e9))||a.name.localeCompare(b.name));
 
   hcRows.forEach(r=>{
     const tr=document.createElement("tr");
