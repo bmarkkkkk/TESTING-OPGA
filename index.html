@@ -185,7 +185,19 @@ function renderLeadChart(rows, cMap, rMap){
   // Chart dimensions
   const W=1040, H=340, padL=44, padR=16, padT=16, padB=40;
   const innerW=W-padL-padR, innerH=H-padT-padB;
-  const minY=-30, maxY=30;
+
+  // auto-scale Y based on data, step 5
+  const allVals = [...teamSeries['Team Ilan'], ...teamSeries['Team Luka']].filter(v=>v!=null);
+  let minY = -10, maxY = 10;
+  if (allVals.length) {
+    const minV = Math.min(...allVals);
+    const maxV = Math.max(...allVals);
+    const pad = 5;
+    minY = Math.floor((minV - pad)/5)*5;
+    maxY = Math.ceil((maxV + pad)/5)*5;
+    if (minY === maxY) { minY -= 5; maxY += 5; }
+    if ((maxY - minY) < 10) { minY -= 5; maxY += 5; }
+  }
 
   function yMap(v){
     // lower better at top
