@@ -223,7 +223,7 @@ function renderLeadChart(rows, cMap, rMap){
   let ylabels='';
   for(let v=minY; v<=maxY; v+=step){
     const y=yMap(v)+6;
-    ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="18" fill="#7b8a8f">${v}</text>`;
+    ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="14" fill="#7b8a8f">${v}</text>`;
   }
 
   // x labels (only completed checkpoints)
@@ -231,7 +231,7 @@ function renderLeadChart(rows, cMap, rMap){
   for(let i=0;i<completeSteps;i++){
     const h=checkpoints[i];
     const x=xMap(i);
-    xlabels += `<text x="${x-4}" y="${H-6}" font-size="16" fill="#7b8a8f">${h}</text>`;
+    xlabels += `<text x="${x-4}" y="${H-6}" font-size="14" fill="#7b8a8f">${h}</text>`;
   }
 
   function linePath(series){
