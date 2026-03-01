@@ -212,7 +212,7 @@ function renderLeadChart(rows, cMap, rMap){
   function yMap(v){
     // negative higher, positive lower
     const t=(v-minY)/(maxY-minY); // 0..1
-    return padT + innerH*(1-t);
+    return padT + innerH*(t);
   }
   function xMap(i){
     const denom = Math.max(1, completeSteps-1);
@@ -256,7 +256,7 @@ function renderLeadChart(rows, cMap, rMap){
     ${xlabels}
     ${lineIlan}
     ${lineLuka}
-    <text x="${W-8}" y="${H-8}" text-anchor="end" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">Holes</text>
+    <text x="${W/2}" y="${H-8}" text-anchor="middle" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">Holes</text>
   </svg>`;
 
   leadChart.innerHTML = `
