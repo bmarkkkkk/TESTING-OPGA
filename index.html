@@ -336,8 +336,9 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     const netToPar=data.net==null?"—":formatNetToPar(data.net, data.parFor || course.par);
     const netStr=data.net==null?"—":Math.round(data.net).toString();
     const grossStr=data.net==null?"—":Math.round(data.gross).toString();
-    const frontGross = (!isTournament && r.perRound[roundName].course) ? r.raw[`R${roundName.split(" ")[1]} Front Gross`] : null;
-    const backGross = (!isTournament && r.perRound[roundName].course) ? r.raw[`R${roundName.split(" ")[1]} Back Gross`] : null;
+    const roundNum = isTournament ? null : roundName.split(" ")[1];
+    const frontGross = (!isTournament && roundNum) ? r.raw[`R${roundNum} Front Gross`] : null;
+    const backGross = (!isTournament && roundNum) ? r.raw[`R${roundNum} Back Gross`] : null;
     const thru = isTournament ? (data.thru>0?`${data.thru}`:"—") : data.thru;
     const thruDisplay = (thru && thru!=="—") ? `<span class="chip">${thru}</span>` : "—";
     const trend = trendInfo(r, cMap, rMap, roundName);
