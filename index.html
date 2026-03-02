@@ -39,7 +39,7 @@ body[data-theme="dark"]{--bg:#0e1114;--card:#151a1e;--text:#eef2f5;--muted:#9aa6
         <select id="viewSelect">
           <option>All Players</option><option>Team Ilan</option><option>Team Luka</option>
         </select>
-        <button id="themeToggle" class="toggle" type="button">Dark</button>
+        <button id="themeToggle" style="display:none" class="toggle" type="button">Dark</button>
       </div>
     </header>
 
@@ -447,6 +447,8 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     const netToPar=data.net==null?"—":formatNetToPar(data.net, data.parFor || course.par);
     const netStr=data.net==null?"—":Math.round(data.net).toString();
     const grossStr=data.net==null?"—":Math.round(data.gross).toString();
+    const frontGross = (!isTournament && r.perRound[roundName].course) ? r.raw[`R${roundName.split(" ")[1]} Front Gross`] : null;
+    const backGross = (!isTournament && r.perRound[roundName].course) ? r.raw[`R${roundName.split(" ")[1]} Back Gross`] : null;
     const thru = isTournament ? (data.thru>0?`${data.thru}`:"—") : data.thru;
     const thruDisplay = (thru && thru!=="—") ? `<span class="chip">${thru}</span>` : "—";
     const trend = trendInfo(r, cMap, rMap, roundName);
