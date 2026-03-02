@@ -266,6 +266,25 @@ function renderLeadChart(rows, cMap, rMap){
   const legendItems=teams.map(t=>`<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${teamColors[t]};display:inline-block;"></span>${t}</span>`).join('<span style="margin-left:6px;"></span>');
   leadChart.innerHTML=` <div style="position:relative;"> ${svg} <div class="legend" style="position:absolute; top:4px; right:16px; background:rgba(255,255,255,0.8); padding:4px 6px; border-radius:6px; font-size:10px;"> ${legendItems} </div> </div> `;
 }
+function applyTeamTableWidths(){
+  try{
+    const table = document.querySelector(".team-table");
+    if(!table) return;
+    const widths = ["clamp(100px,16vw,140px)", "clamp(80px,12vw,110px)", "clamp(150px,28vw,220px)", "clamp(70px,10vw,90px)"];
+    const rows = table.querySelectorAll("tr");
+    rows.forEach(r=>{
+      const cells = r.children;
+      for(let i=0;i<cells.length && i<4;i++){
+        cells[i].style.width = widths[i];
+        cells[i].style.maxWidth = widths[i];
+        cells[i].style.whiteSpace = 'nowrap';
+        cells[i].style.overflow = 'hidden';
+        cells[i].style.textOverflow = 'ellipsis';
+      }
+    });
+  }catch(e){}
+}
+
 function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(courses);const rMap=roundMap(rounds);const roundName=roundSelect.value;const courseName=rMap[roundName];const course=cMap[courseName];
   // dynamic team filter options
   const teams = Array.from(new Set(scores.slice(1).map(r=>r[2]).filter(t=>t && t.trim().length)));
@@ -453,6 +472,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     if(i===0) tr.classList.add('leader-row');
     teamTable.appendChild(tr);
   });
+  applyTeamTableWidths();
 
   // Team lead chart (0–72 holes, 9-hole checkpoints)
   renderLeadChart(rows, cMap, rMap);
