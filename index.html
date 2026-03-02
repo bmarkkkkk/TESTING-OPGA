@@ -18,7 +18,7 @@ body[data-theme="dark"]{--bg:#0e1114;--card:#151a1e;--text:#eef2f5;--muted:#9aa6
 .trend{margin-left:6px;font-size:12px;font-weight:700;}
 .trend-up{color:var(--good);} .trend-down{color:var(--bad);} .trend-flat{color:var(--muted);} 
 .badge{display:inline-flex;align-items:center;padding:2px 8px;border-radius:999px;font-size:11px;font-weight:600;background:var(--chip-bg);color:var(--chip-text);} .badge.good{color:var(--good);} .badge.bad{color:var(--bad);} 
-.leader-row td{background:rgba(185,153,83,0.12);} .hot-row td{box-shadow: inset 4px 0 0 rgba(11,91,62,0.4);} .player-table tbody tr{cursor:pointer;} .player-table tbody tr:hover{background:rgba(0,0,0,0.03);} body[data-theme="dark"] .player-table tbody tr:hover{background:rgba(255,255,255,0.04);} 
+.leader-row td{background:rgba(185,153,83,0.12);} .player-table tbody tr{cursor:pointer;} .player-table tbody tr:hover{background:rgba(0,0,0,0.03);} body[data-theme="dark"] .player-table tbody tr:hover{background:rgba(255,255,255,0.04);} 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000;} .modal.show{display:flex;} .modal-card{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;max-width:420px;width:100%;position:relative;} .modal-card h3{margin:0 0 8px;color:var(--green);} .modal-close{position:absolute;top:8px;right:8px;border:none;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;} .modal-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family: ui-sans-serif, system-ui;font-size:13px;} .modal-list div{background:rgba(0,0,0,0.04);padding:8px;border-radius:8px;} body[data-theme="dark"] .modal-list div{background:rgba(255,255,255,0.04);} 
   </style>
 </head>
@@ -448,7 +448,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     const netStr=data.net==null?"—":Math.round(data.net).toString();
     const grossStr=data.net==null?"—":Math.round(data.gross).toString();
     const thru = isTournament ? (data.thru>0?`${data.thru}`:"—") : data.thru;
-    const thruDisplay = (thru && thru!=="—") ? `<span class="chip">Thru ${thru}</span>` : "—";
+    const thruDisplay = (thru && thru!=="—") ? `<span class="chip">${thru}</span>` : "—";
     const trend = trendInfo(r, cMap, rMap, roundName);
     const trendArrow = trend.arrow ? `<span class="trend ${trend.cls}">${trend.arrow}</span>` : "";
     const netParCell = data.net==null ? "—" : `${netToPar}${trendArrow}`;
