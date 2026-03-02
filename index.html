@@ -455,6 +455,18 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
 
   const teamEntries=Object.entries(teamTotals).sort((a,b)=>a[1]-b[1]);
   teamTable.innerHTML="";
+  // set header inline widths
+  const teamHead = teamTable.closest("table")?.querySelector("thead tr");
+  if(teamHead){
+    const widths=["clamp(110px,18vw,150px)","clamp(80px,12vw,110px)","clamp(150px,28vw,230px)","clamp(70px,10vw,90px)"];
+    Array.from(teamHead.children).forEach((cell,i)=>{
+      cell.style.width = widths[i]||"auto";
+      cell.style.maxWidth = widths[i]||"auto";
+      cell.style.whiteSpace = 'nowrap';
+      cell.style.overflow = 'hidden';
+      cell.style.textOverflow = 'ellipsis';
+    });
+  }
   teamEntries.forEach(([team,net],i)=>{
     const par = teamPars[team] || (course.par*4);
     const netToPar = formatNetToPar(net, par);
