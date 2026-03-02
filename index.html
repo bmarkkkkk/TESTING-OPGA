@@ -369,8 +369,8 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
           <div><strong>Gross</strong><br>${grossStr}</div>
           <div><strong>To Par</strong><br>${netToPar}</div>
           <div><strong>Thru</strong><br>${thru && thru!=="—" ? thru : "—"}</div>
-          <div><strong>Front Nine</strong><br>${trendLabel}</div>
-          <div><strong>Back Nine</strong><br>${trend.delta!=null && trend.delta<0 ? "Building" : trend.delta!=null && trend.delta>0 ? "Fading" : "Even"}</div>
+          <div><strong>Front Nine</strong><br>${player.front ?? "—"}</div>
+          <div><strong>Back Nine</strong><br>${player.back ?? "—"}</div>
         </div>
       `;
       openModal(html);
