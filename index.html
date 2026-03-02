@@ -266,6 +266,12 @@ function renderLeadChart(rows, cMap, rMap){
   leadChart.innerHTML=` <div style="position:relative;"> ${svg} <div class="legend" style="position:absolute; top:4px; right:16px; background:rgba(255,255,255,0.8); padding:4px 6px; border-radius:6px; font-size:10px;"> ${legendItems} </div> </div> `;
 }
 function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(courses);const rMap=roundMap(rounds);const roundName=roundSelect.value;const courseName=rMap[roundName];const course=cMap[courseName];
+  // dynamic team filter options
+  const teams = Array.from(new Set(scores.slice(1).map(r=>r[2]).filter(t=>t && t.trim().length)));
+  const currentView = viewSelect.value || localStorage.getItem('viewSelect') || 'All Players';
+  viewSelect.innerHTML = '<option>All Players</option>' + teams.map(t=>`<option>${t}</option>`).join('');
+  if(teams.includes(currentView)) viewSelect.value = currentView; else viewSelect.value = 'All Players';
+
   document.getElementById("courseName").textContent=courseName||"—";document.getElementById("coursePar").textContent=course?.par??"—";document.getElementById("courseRating").textContent=course?.rating??"—";document.getElementById("courseSlope").textContent=course?.slope??"—";
   const header=scores[0];const idx=(name)=>header.indexOf(name);
 
