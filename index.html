@@ -333,7 +333,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
   // decide round view
   const isTournament = roundName === 'Tournament';
 
-  const teamFilter=viewSelect.value;const filtered=teamFilter.includes('Team')?rows.filter(r=>r.team===teamFilter):rows;
+  const teamFilter=viewSelect.value;const filtered=teamFilter!== 'All Players' ? rows.filter(r=>r.team===teamFilter) : rows;
   const sorted=[...filtered].sort((a,b)=>{
     const aNet = isTournament ? a.totalNet : a.perRound[roundName].net;
     const bNet = isTournament ? b.totalNet : b.perRound[roundName].net;
