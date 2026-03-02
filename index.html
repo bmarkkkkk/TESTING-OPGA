@@ -426,7 +426,11 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     }
     if(lastCommon<0) return null;
     const sum = segs.reduce((acc,s)=>acc+s[lastCommon],0);
-    return {sum, index:lastCommon};
+    // compute par for that 9
+    const seq = NINE_SEQ[lastCommon];
+    const rCourse = cMap[rMap[`Round ${seq.r}`]];
+    const par = rCourse ? (rCourse.par/2) * teamPlayers.length : 0;
+    return {sum, index:lastCommon, par};
   }
 
   const teamEntries=Object.entries(teamTotals).sort((a,b)=>a[1]-b[1]);
