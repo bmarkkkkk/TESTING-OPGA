@@ -436,13 +436,21 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     }
   });
 
-  function teamBackNine(team){
+  function teamBackNine(team, roundName){
     const teamPlayers = rows.filter(p=>p.team===team);
     if(!teamPlayers.length) return null;
     const segs = teamPlayers.map(p=>playerNineSegments(p, cMap, rMap));
     let lastCommon = -1;
-    for(let i=0;i<NINE_SEQ.length;i++){
-      if(segs.every(s=>s[i]!=null)) lastCommon = i;
+    if(roundName && roundName !== 'Tournament'){
+      const r = parseInt(roundName.split(' ')[1],10);
+      const start = (r-1)*2;
+      for(let i=start;i<=start+1;i++){
+        if(segs.every(s=>s[i]!=null)) lastCommon = i;
+      }
+    } else {
+      for(let i=0;i<NINE_SEQ.length;i++){
+        if(segs.every(s=>s[i]!=null)) lastCommon = i;
+      }
     }
     if(lastCommon<0) return null;
     const sum = segs.reduce((acc,s)=>acc+s[lastCommon],0);
@@ -470,7 +478,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
   teamEntries.forEach(([team,net],i)=>{
     const par = teamPars[team] || (course.par*4);
     const netToPar = formatNetToPar(net, par);
-    const momentum = teamBackNine(team);
+    const momentum = teamBackNine(team, roundName);
     let momentumCell = "—";
     if(momentum){
       const val = Math.round(momentum.sum);
