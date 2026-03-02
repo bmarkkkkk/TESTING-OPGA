@@ -194,179 +194,73 @@ function closeModal(){
 
 function renderLeadChart(rows, cMap, rMap){
   if(!leadChart) return;
-  // build checkpoints: 0, 9, 18, ... 72
   const checkpoints = [0,9,18,27,36,45,54,63,72];
-  const teams = ["Team Ilan","Team Luka"];
-  const teamColors = {
-    "Team Ilan": "#0b5b3e",
-    "Team Luka": "#58a67a"
-  };
-
-  // per-player per-nine net/par
-  const nineSeq = NINE_SEQ;
-
-  function nineNetPar(player, r, half){
-    const rCourse = cMap[rMap[`Round ${r}`]];
-    if(!rCourse) return {net:null, par:null};
-    const ch = chFor(player.hi, rCourse);
-    const halfUp = ch!=null ? Math.ceil(ch/2) : null;
-    const halfDown = ch!=null ? Math.floor(ch/2) : null;
-
-    const header = [
-      `R${r} Front Gross`,
-      `R${r} Back Gross`
-    ];
-    const fIdx = header[0];
-    const bIdx = header[1];
-    const f = player.raw[fIdx];
-    const b = player.raw[bIdx];
-
-    if(half==='F' && f!=null){
-      return {net: f - halfUp, par: (rCourse.par/2)};
-    }
-    if(half==='B' && b!=null){
-      return {net: b - halfDown, par: (rCourse.par/2)};
-    }
-    return {net:null, par:null};
-  }
-
-  // Build per-team cumulative net-to-par at each checkpoint
-  const teamSeries = {};
-  teams.forEach(team=>{teamSeries[team]=[0];});
-
-  // Build per-team cumulative per checkpoint (only if ALL players on BOTH teams have data)
-  let teamCum = {"Team Ilan":0, "Team Luka":0};
-  let teamParCum = {"Team Ilan":0, "Team Luka":0};
-
+  // derive teams from data
+  const teams = Array.from(new Set(rows.map(r=>r.team).filter(Boolean)));
+  const colorPalette = ['#0b5b3e','#58a67a','#b57f2a'];
+  const teamColors = {};
+  teams.forEach((t,i)=>teamColors[t]=colorPalette[i%colorPalette.length]);
+  const nineSeq = [ {r:1,half:'F'},{r:1,half:'B'}, {r:2,half:'F'},{r:2,half:'B'}, {r:3,half:'F'},{r:3,half:'B'}, {r:4,half:'F'},{r:4,half:'B'} ];
+  const teamSeries = {}; teams.forEach(t=>teamSeries[t]=[0]);
+  let teamCum = {}; let teamParCum = {};
+  teams.forEach(t=>{teamCum[t]=0; teamParCum[t]=0;});
   for(let i=0;i<nineSeq.length;i++){
     const {r,half} = nineSeq[i];
-
-    const adds = {};
-    const completes = {};
-
+    const completes = {}; const adds = {};
     teams.forEach(team=>{
       const teamPlayers = rows.filter(p=>p.team===team);
-      let netAdd = 0;
-      let parAdd = 0;
-      let complete = true;
-
+      let netAdd=0, parAdd=0; let complete=true;
       teamPlayers.forEach(p=>{
-        const raw = p.raw;
-        const rCourse = cMap[rMap[`Round ${r}`]];
-        if(!raw || !rCourse) { complete = false; return; }
+        const raw=p.raw; const rCourse=cMap[rMap[`Round ${r}`]];
+        if(!raw || !rCourse){ complete=false; return; }
         const ch = chFor(p.hi, rCourse);
         const halfUp = ch!=null ? Math.ceil(ch/2) : null;
         const halfDown = ch!=null ? Math.floor(ch/2) : null;
         const f = toNum(raw[`R${r} Front Gross`]);
         const b = toNum(raw[`R${r} Back Gross`]);
         if(half==='F'){
-          if(f==null || f<=0){ complete = false; return; }
+          if(f==null || f<=0){ complete=false; return; }
           netAdd += (f - halfUp); parAdd += (rCourse.par/2);
         } else {
-          if(b==null || b<=0){ complete = false; return; }
+          if(b==null || b<=0){ complete=false; return; }
           netAdd += (b - halfDown); parAdd += (rCourse.par/2);
         }
       });
-
-      completes[team] = complete;
-      adds[team] = {netAdd, parAdd};
+      completes[team]=complete; adds[team]={netAdd, parAdd};
     });
-
-    // only extend chart if BOTH teams have complete data for this 9-hole checkpoint
-    if(!(completes['Team Ilan'] && completes['Team Luka'])){
-      break;
-    }
-
+    if(!teams.every(t=>completes[t])) break;
     teams.forEach(team=>{
-      teamCum[team] += adds[team].netAdd;
-      teamParCum[team] += adds[team].parAdd;
-      const netToPar = teamCum[team] - teamParCum[team];
+      teamCum[team]+=adds[team].netAdd;
+      teamParCum[team]+=adds[team].parAdd;
+      const netToPar = teamCum[team]-teamParCum[team];
       teamSeries[team].push(netToPar);
     });
   }
-
-  // Chart dimensions
   const W=520, H=320, padL=40, padR=16, padT=10, padB=40;
   const innerW=W-padL-padR, innerH=H-padT-padB;
-
-  // trim to only fully-complete checkpoints (both teams)
-  const completeSteps = Math.min(teamSeries['Team Ilan'].length, teamSeries['Team Luka'].length);
-  const seriesI = teamSeries['Team Ilan'].slice(0, completeSteps);
-  const seriesL = teamSeries['Team Luka'].slice(0, completeSteps);
-
-  // auto-scale Y based on data, step picked for readability
-  const allVals = [...seriesI, ...seriesL].filter(v=>v!=null);
-  let minY = -10, maxY = 10;
-  let step = 10;
-  if (allVals.length) {
-    const minV = Math.min(...allVals);
-    const maxV = Math.max(...allVals);
-    const pad = 5;
-    minY = Math.floor((minV - pad)/10)*10;
-    maxY = Math.ceil((maxV + pad)/10)*10;
-    if (minY === maxY) { minY -= 10; maxY += 10; }
+  const completeSteps = Math.min(...teams.map(t=>teamSeries[t].length));
+  const seriesList = teams.map(t=>teamSeries[t].slice(0, completeSteps));
+  const allVals = seriesList.flat().filter(v=>v!=null);
+  let minY=-10, maxY=10, step=10;
+  if(allVals.length){
+    const minV=Math.min(...allVals), maxV=Math.max(...allVals);
+    const pad=5; minY=Math.floor((minV-pad)/10)*10; maxY=Math.ceil((maxV+pad)/10)*10;
+    if(minY===maxY){minY-=10; maxY+=10;}
   }
-
-  function yMap(v){
-    // negative higher, positive lower
-    const t=(v-minY)/(maxY-minY); // 0..1
-    return padT + innerH*(t);
-  }
-  function xMap(i){
-    const denom = Math.max(1, completeSteps-1);
-    return padL + innerW*(i/denom);
-  }
-
-  // axis labels
-  let ylabels='';
-  for(let v=minY; v<=maxY; v+=step){
-    const y=yMap(v)+6;
-    const label = v>0 ? `+${v}` : `${v}`;
-    ylabels += `<text x="6" y="${y.toFixed(1)}" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">${label}</text>`;
-  }
-
-  let xlabels='';
-  for(let i=0;i<completeSteps;i++){
-    const h=checkpoints[i];
-    const x=xMap(i);
-    xlabels += `<text x="${x-4}" y="${H-6}" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">${h}</text>`;
-  }
-
-  function linePath(series){
-    return series.map((v,i)=>`${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' ');
-  }
-
-  const lineIlan = seriesI.length>1 ? `<polyline fill="none" stroke="${teamColors['Team Ilan']}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="${linePath(seriesI)}"/>` : '';
-  const lineLuka = seriesL.length>1 ? `<polyline fill="none" stroke="${teamColors['Team Luka']}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="${linePath(seriesL)}"/>` : '';
-
-  const legend = ``;
-
-  const axes = `
-    <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#dfe6df" />
-    <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#dfe6df" />
-  `;
-
-  const svg = `
-  <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg">
-    <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff" rx="10" stroke="#e6e6e6"/>
-    ${axes}
-    ${ylabels}
-    ${xlabels}
-    ${lineIlan}
-    ${lineLuka}
-  </svg>`;
-
-  leadChart.innerHTML = `
-    <div style="position:relative;">
-      ${svg}
-      <div class="legend" style="position:absolute; top:8px; right:16px; background:rgba(255,255,255,0.8); padding:4px 6px; border-radius:6px; font-size:10px;">
-        <span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${teamColors['Team Ilan']};display:inline-block;"></span>Team Ilan</span>
-        <span style="display:inline-flex;align-items:center;gap:6px; margin-left:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${teamColors['Team Luka']};display:inline-block;"></span>Team Luka</span>
-      </div>
-    </div>
-  `;
+  function yMap(v){ const t=(v-minY)/(maxY-minY); return padT + innerH*(t); }
+  function xMap(i){ const denom=Math.max(1, completeSteps-1); return padL + innerW*(i/denom); }
+  let ylabels=''; for(let v=minY; v<=maxY; v+=step){ const y=yMap(v)+6; const label=v>0?`+${v}`:`${v}`; ylabels+=`<text x="6" y="${y.toFixed(1)}" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">${label}</text>`; }
+  let xlabels=''; for(let i=0;i<completeSteps;i++){ const h=checkpoints[i]; const x=xMap(i); xlabels+=`<text x="${x-4}" y="${H-6}" font-size="12" fill="#7b8a8f" font-family="ui-sans-serif, system-ui">${h}</text>`; }
+  function linePath(series){ return series.map((v,i)=>`${xMap(i).toFixed(1)},${yMap(v).toFixed(1)}`).join(' '); }
+  const lines = teams.map((t,idx)=>{
+    const s=seriesList[idx];
+    return s.length>1 ? `<polyline fill="none" stroke="${teamColors[t]}" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" points="${linePath(s)}"/>` : '';
+  }).join('');
+  const axes = ` <line x1="${padL}" y1="${H-padB}" x2="${W-padR}" y2="${H-padB}" stroke="#dfe6df" /> <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${H-padB}" stroke="#dfe6df" /> `;
+  const svg = ` <svg viewBox="0 0 ${W} ${H}" preserveAspectRatio="xMidYMid meet" xmlns="http://www.w3.org/2000/svg"> <rect x="0" y="0" width="${W}" height="${H}" fill="#ffffff" rx="10" stroke="#e6e6e6"/> ${axes} ${ylabels} ${xlabels} ${lines} </svg>`;
+  const legendItems = teams.map(t=>`<span style="display:inline-flex;align-items:center;gap:6px;"><span style="width:10px;height:10px;border-radius:50%;background:${teamColors[t]};display:inline-block;"></span>${t}</span>`).join('<span style="margin-left:6px;"></span>');
+  leadChart.innerHTML = ` <div style="position:relative;"> ${svg} <div class="legend" style="position:absolute; top:4px; right:16px; background:rgba(255,255,255,0.8); padding:4px 6px; border-radius:6px; font-size:10px;"> ${legendItems} </div> </div> `;
 }
-
 function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(courses);const rMap=roundMap(rounds);const roundName=roundSelect.value;const courseName=rMap[roundName];const course=cMap[courseName];
   document.getElementById("courseName").textContent=courseName||"—";document.getElementById("coursePar").textContent=course?.par??"—";document.getElementById("courseRating").textContent=course?.rating??"—";document.getElementById("courseSlope").textContent=course?.slope??"—";
   const header=scores[0];const idx=(name)=>header.indexOf(name);
