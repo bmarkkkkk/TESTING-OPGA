@@ -21,6 +21,7 @@ body[data-theme="dark"]{--bg:#0e1114;--card:#151a1e;--text:#eef2f5;--muted:#9aa6
 .leader-row td{background:rgba(185,153,83,0.12);} .player-table tbody tr{cursor:pointer;} .player-table tbody tr:hover{background:rgba(0,0,0,0.03);} body[data-theme="dark"] .player-table tbody tr:hover{background:rgba(255,255,255,0.04);} 
 .modal{position:fixed;inset:0;background:rgba(0,0,0,0.45);display:none;align-items:center;justify-content:center;padding:20px;z-index:1000;} .modal.show{display:flex;} .modal-card{background:var(--card);color:var(--text);border:1px solid var(--line);border-radius:12px;padding:18px;max-width:420px;width:100%;position:relative;} .modal-card h3{margin:0 0 8px;color:var(--green);} .modal-close{position:absolute;top:8px;right:8px;border:none;background:transparent;color:var(--muted);font-size:20px;cursor:pointer;} .modal-list{display:grid;grid-template-columns:1fr 1fr;gap:8px;font-family: ui-sans-serif, system-ui;font-size:13px;} .modal-list div{background:rgba(0,0,0,0.04);padding:8px;border-radius:8px;} body[data-theme="dark"] .modal-list div{background:rgba(255,255,255,0.04);} 
   
+.sparkline{display:inline-block;width:70px;height:16px;vertical-align:middle;margin-left:6px;}
 </style>
 </head>
 <body>
@@ -134,6 +135,17 @@ function playerNineSegments(player, cMap, rMap){
   });
   return segments;
 }
+function sparklineSvg(segments){
+  const W=70, H=16, pad=2;
+  let pts=[], cum=0, any=false;
+  segments.forEach((v,i)=>{ if(v==null) return; cum+=v; pts.push({i,v:cum}); any=true; });
+  if(!any) return '';
+  const vals=pts.map(p=>p.v); const min=Math.min(...vals), max=Math.max(...vals); const span=(max-min)||1;
+  const x=i=>pad+(W-2*pad)*(i/7); const y=v=>pad+(H-2*pad)*(1-((v-min)/span));
+  const points=pts.map(p=>`${x(p.i).toFixed(1)},${y(p.v).toFixed(1)}`).join(' ');
+  return `<svg class="sparkline" viewBox="0 0 ${W} ${H}" preserveAspectRatio="none"><polyline fill="none" stroke="#7b8a8f" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" points="${points}"/></svg>`;
+}
+
 
 function trendInfo(player, roundName){
   // compare most recently completed round to the previous completed round
@@ -377,10 +389,11 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
     const thru = isTournament ? (data.thru>0?`${data.thru}`:"—") : data.thru;
     const thruDisplay = (thru && thru!=="—") ? `<span class="chip">${thru}</span>` : "—";
     const trend = trendInfo(r, roundName);
+    const spark = sparklineSvg(playerNineSegments(r, cMap, rMap));
     const trendArrow = trend.arrow ? `<span class="trend ${trend.cls}">${trend.arrow}</span>` : "";
     const netParCell = data.net==null ? "—" : `${netToPar}${trendArrow}`;
     const tr=document.createElement("tr");
-    tr.innerHTML=`<td>${pos}</td><td>${r.name}</td><td>${netStr}</td><td>${netParCell}</td><td>${grossStr}</td><td>${thruDisplay}</td>`;
+    tr.innerHTML=`<td>${pos}</td><td>${r.name}</td><td>${netStr}</td><td>${netParCell}</td><td>${grossStr}</td><td>${thruDisplay}${spark}</td>`;
     if(i===0 && data.net!=null) tr.classList.add('leader-row');
     if(trend.delta!=null && trend.delta<0) tr.classList.add('hot-row');
     tr.addEventListener('click',()=>{
@@ -402,7 +415,7 @@ function render(data){const {scores,courses,rounds}=data;const cMap=courseMap(co
           <div><strong>Back Nine</strong><br>${backVal}</div>
       `;
       const html = `
-        <h3>${r.name}</h3>
+        <h3>${r.name} <span style="float:right;">${spark}</span></h3>
         <div class="muted" style="font-family: ui-sans-serif, system-ui; margin-bottom:10px;">${r.team || "—"} • HI ${hiStr} • ${title}</div>
         <div class="modal-list">
           <div><strong>Net</strong><br>${netStr}</div>
