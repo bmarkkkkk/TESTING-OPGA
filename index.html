@@ -1289,6 +1289,8 @@ function hideRecordsPage(){
   if(availableYears.length>1) document.getElementById('yearControls').style.display='flex';
   document.querySelectorAll('.controls').forEach(el=>el.style.display='flex');
   document.querySelectorAll('#teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='block');
+  document.getElementById('championBanner').style.display='';
+  document.getElementById('highlights').style.display='';
   lastCSV='';
   render();
   window.scrollTo(0,0);
