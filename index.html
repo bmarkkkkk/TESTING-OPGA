@@ -334,13 +334,13 @@
     .champ-label { font-size:0.6rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:3px; }
     .champ-name { font-weight:600; font-size:0.9rem; color:var(--text-primary); }
     .champ-detail { font-size:0.72rem; color:var(--text-secondary); margin-bottom:10px; }
-    .champ-score { font-size:0.72rem; color:var(--green-300); }
+    .champ-score { font-size:0.72rem; color:var(--text-secondary); }
     .champ-roster { margin-top:12px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.15); display:none; }
     .champ-roster.open { display:block; }
     .champ-roster-label { font-size:0.55rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
     .champ-roster-row { display:flex; justify-content:space-between; padding:4px 0; font-size:0.78rem; }
     .champ-roster-row .r-name { color:var(--text-secondary); }
-    .champ-roster-row .r-score { font-weight:600; font-variant-numeric:tabular-nums; }
+    .champ-roster-row .r-score { font-weight:600; font-variant-numeric:tabular-nums; color:var(--text-secondary); }
     .champ-tap-hint { margin-top:10px; font-size:0.6rem; color:var(--text-muted); font-style:italic; text-align:center; }
     .rec-row { display:flex; align-items:center; padding:14px 16px; gap:14px; }
     .rec-row:not(:last-child) { border-bottom:1px solid var(--border); }
@@ -1367,7 +1367,7 @@ function renderChampionsWall(){
       <div class="champ-score">${fmtPar(c.score)} net to par</div>
       <div class="champ-roster" id="roster-${c.year}">
         <div class="champ-roster-label">Winning Roster</div>
-        ${c.roster.map(m=>`<div class="champ-roster-row"><span class="r-name">${esc(m.name)}</span><span class="r-score ${parClass(m.ntp)}">${fmtPar(m.ntp)}</span></div>`).join('')}
+        ${c.roster.map(m=>`<div class="champ-roster-row"><span class="r-name">${esc(m.name)}</span><span class="r-score">${fmtPar(m.ntp)}</span></div>`).join('')}
       </div>
       <div class="champ-tap-hint" id="hint-${c.year}">Tap to see roster</div>
     </div>`;
@@ -1482,8 +1482,8 @@ function renderCourseHistory(){
       <div class="course-hist-name">${esc(name)}</div>
       <div class="course-hist-stats">
         <div class="course-hist-stat"><div class="course-hist-stat-label">Rounds Played</div><div class="course-hist-stat-val">${d.rounds}</div></div>
-        <div class="course-hist-stat"><div class="course-hist-stat-label">Avg Net to Par</div><div class="course-hist-stat-val ${avgClass}">${avgStr}</div></div>
-        <div class="course-hist-stat"><div class="course-hist-stat-label">Best Net Round</div><div class="course-hist-stat-val ${bestClass}">${fmtPar(d.bestNet)}</div>${d.bestBy?`<div class="course-hist-stat-sub">${d.bestBy}</div>`:''}</div>
+        <div class="course-hist-stat"><div class="course-hist-stat-label">Avg Net to Par</div><div class="course-hist-stat-val">${avgStr}</div></div>
+        <div class="course-hist-stat"><div class="course-hist-stat-label">Best Net Round</div><div class="course-hist-stat-val">${fmtPar(d.bestNet)}</div>${d.bestBy?`<div class="course-hist-stat-sub">${d.bestBy}</div>`:''}</div>
       </div>
     </div>`;
   }).join('');
