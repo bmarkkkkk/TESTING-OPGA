@@ -87,8 +87,8 @@
     .champion-margin { font-size:0.8rem; color:var(--text-secondary); margin-top:4px; }
     .champion-individual { font-size:0.82rem; color:var(--text-secondary); margin-top:10px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.15); }
     .champion-individual strong { color:var(--cream); font-weight:600; }
-    .champion-accolades { display:flex; justify-content:center; gap:20px; margin-top:12px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.15); font-size:0.78rem; color:var(--text-secondary); }
-    .champion-accolades span { white-space:nowrap; }
+    .champion-accolades { display:flex; flex-direction:column; align-items:center; gap:6px; margin-top:12px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.15); font-size:0.78rem; color:var(--text-secondary); }
+    .champion-accolades span { display:flex; flex-wrap:wrap; justify-content:center; gap:0 4px; text-align:center; }
     .champion-accolades strong { color:var(--cream); font-weight:600; }
 
     /* Final mode badge */
@@ -275,7 +275,9 @@
     .modal-perf-val.over { color:var(--red); }
     .modal-perf-val.even { color:var(--text-primary); }
     .modal-divider { height:1px; background:var(--border); margin:14px 0; }
-    .modal-rounds-title { font-size:0.68rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+    .modal-rounds-title { display:flex; align-items:center; gap:8px; font-size:0.68rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:8px; }
+    .modal-rounds-title .mrt-line { flex:1; height:1px; background:var(--border-bright); }
+    .modal-rounds-title .mrt-course { font-weight:500; letter-spacing:0.03em; text-transform:none; color:var(--text-secondary); font-size:0.75rem; }
     .modal-round-row { display:flex; justify-content:space-between; padding:8px 0; font-size:0.85rem; border-bottom:1px solid var(--border); }
     .modal-round-row:last-child { border-bottom:none; }
     .modal-round-label { color:var(--text-secondary); font-weight:500; }
@@ -338,6 +340,7 @@
     .champ-roster { margin-top:12px; padding-top:10px; border-top:1px solid rgba(201,168,76,0.15); display:none; }
     .champ-roster.open { display:block; }
     .champ-roster-label { font-size:0.55rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--gold); margin-bottom:6px; }
+    .champ-roster .champ-roster-label ~ .champ-roster-label { margin-top:10px; padding-top:8px; border-top:1px solid rgba(201,168,76,0.12); }
     .champ-roster-row { display:flex; justify-content:space-between; padding:4px 0; font-size:0.78rem; }
     .champ-roster-row .r-name { color:var(--text-secondary); }
     .champ-roster-row .r-score { font-weight:600; font-variant-numeric:tabular-nums; color:var(--text-secondary); }
@@ -351,11 +354,14 @@
     .rec-value { font-weight:700; font-size:1.15rem; color:var(--text-primary); font-variant-numeric:tabular-nums; text-align:right; min-width:60px; }
     .course-hist-item { padding:14px 16px; }
     .course-hist-item:not(:last-child) { border-bottom:1px solid var(--border); }
-    .course-hist-name { font-weight:600; font-size:0.95rem; color:var(--text-primary); margin-bottom:8px; }
+    .course-hist-name { display:flex; align-items:center; gap:10px; margin-bottom:8px; }
+    .course-hist-name-text { font-weight:600; font-size:0.95rem; color:var(--text-primary); }
+    .course-hist-name-line { flex:1; height:1px; background:var(--border); }
+    .course-hist-name-info { font-size:0.72rem; color:var(--text-muted); font-weight:400; white-space:nowrap; }
     .course-hist-stats { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; }
-    .course-hist-stat { background:var(--surface-2); border-radius:var(--radius-sm); padding:8px 10px; text-align:center; }
+    .course-hist-stat { background:var(--surface-2); border-radius:var(--radius-sm); padding:8px 10px; text-align:center; display:flex; flex-direction:column; }
     .course-hist-stat-label { font-size:0.55rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:3px; }
-    .course-hist-stat-val { font-weight:700; font-size:0.95rem; color:var(--text-primary); }
+    .course-hist-stat-val { font-weight:700; font-size:0.95rem; color:var(--text-primary); flex:1; display:flex; align-items:center; justify-content:center; }
     .course-hist-stat-sub { font-size:0.6rem; color:var(--text-secondary); margin-top:2px; }
     @media(max-width:480px){ .champions-grid{grid-template-columns:1fr} }
 
@@ -549,7 +555,7 @@
   <script>
 const SHEET_ID = '1YlBAFaODGvwT49IxAOgCjgAJgC2Xw9R9XJLolAuveGU';
 const POLL_SECONDS = 5;
-const START_YEAR = 2026;
+const START_YEAR = '2026';
 let availableYears = [];
 let currentYear = START_YEAR;
 function tabsForYear(y){return{scores:`Scores ${y}`,courses:`Courses ${y}`,rounds:`Rounds ${y}`}}
@@ -657,6 +663,7 @@ function isTournamentComplete(){
 }
 
 function render(){
+  if(recordsOpen)return;
   const complete=isTournamentComplete();
   renderChampionState(complete);
   renderCourseInfo();
@@ -666,15 +673,26 @@ function render(){
 function renderChampionState(complete){
   const badge=document.querySelector('.header-badge');
   const banner=document.getElementById('championBanner');
-  if(!complete||currentView!=='tournament'){
+
+  // Badge: "Final Results" if full tournament complete, or current round is complete for all players
+  let roundFinal=false;
+  if(!complete&&currentView!=='tournament'){
+    const rn=parseInt(currentView);
+    roundFinal=players.length>0&&players.every(p=>{const res=calcPlayerRound(p,rn);return res&&res.thru===18});
+  }
+  if(complete||roundFinal){
+    badge.classList.add('final');
+    badge.innerHTML='<span class="live-dot"></span>Final Results';
+  }else{
     badge.classList.remove('final');
     badge.innerHTML='<span class="live-dot"></span>Live Scoring';
+  }
+
+  // Banner: only for completed tournament in tournament view
+  if(!complete||currentView!=='tournament'){
     banner.classList.remove('show');
     return;
   }
-  // Final badge
-  badge.classList.add('final');
-  badge.innerHTML='<span class="live-dot"></span>Final Results';
 
   // Team champion
   const teamMap={};
@@ -688,12 +706,16 @@ function renderChampionState(complete){
   const indivData=players.map(p=>{const v=calcPlayerView(p,'tournament');return{name:p.name,netToPar:v.netToPar,net:v.net}}).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
 
   document.querySelector('.champion-label').textContent=`🏆 ${currentYear} Champions`;
-  document.getElementById('champTeam').textContent=teamData[0].name;
+  const tiedTeams=teamData.filter(t=>t.netToPar===teamData[0].netToPar);
+  document.getElementById('champTeam').textContent=tiedTeams.map(t=>t.name).join(' & ');
   if(teamData.length>=2){
     const spread=Math.abs(teamData[0].netToPar-teamData[1].netToPar);
-    document.getElementById('champMargin').textContent=spread===0?'Tied with '+teamData[1].name:'Won by '+spread+' stroke'+(spread!==1?'s':'')+' over '+teamData[1].name;
+    if(tiedTeams.length>1){document.getElementById('champMargin').textContent='Teams tied at '+fmtPar(teamData[0].netToPar)}
+    else{document.getElementById('champMargin').textContent='Won by '+spread+' stroke'+(spread!==1?'s':'')+' over '+teamData[1].name}
   }
-  document.getElementById('champIndividual').innerHTML='Individual Champion: <strong>'+esc(indivData[0].name)+'</strong> ('+fmtPar(indivData[0].netToPar)+')';
+  const tiedIndiv=indivData.filter(d=>d.netToPar===indivData[0].netToPar&&d.net===indivData[0].net);
+  const indivNames=tiedIndiv.map(d=>'<strong>'+esc(d.name)+'</strong>').join(' & ');
+  document.getElementById('champIndividual').innerHTML='Individual Champion'+(tiedIndiv.length>1?'s':'')+': '+indivNames+' ('+fmtPar(indivData[0].netToPar)+')';
 
   // Best Round & Best Nine for banner
   let bestRoundList=[], bestNines=[];
@@ -710,13 +732,17 @@ function renderChampionState(complete){
   let accoladesHtml='';
   if(bestRoundList.length){
     bestRoundList.sort((a,b)=>a.ntp-b.ntp);
-    const br=bestRoundList[0];
-    accoladesHtml+=`<span>Best Round: <strong>${esc(br.name)}</strong> ${fmtPar(br.ntp)} · R${br.rn}</span>`;
+    const bestNtp=bestRoundList[0].ntp;
+    const tiedBR=bestRoundList.filter(b=>b.ntp===bestNtp);
+    const brNames=[...new Set(tiedBR.map(b=>esc(b.name)))].join(' & ');
+    accoladesHtml+=`<span>Best Round: <strong>${brNames}</strong> ${fmtPar(bestNtp)}${tiedBR.length===1?' · R'+tiedBR[0].rn:''}</span>`;
   }
   if(bestNines.length){
     bestNines.sort((a,b)=>a.score-b.score);
-    const bn=bestNines[0];
-    accoladesHtml+=`<span>Best Nine: <strong>${esc(bn.name)}</strong> ${fmtPar(bn.score)} · ${bn.label}</span>`;
+    const bestScore=bestNines[0].score;
+    const tiedBN=bestNines.filter(b=>b.score===bestScore);
+    const bnNames=[...new Set(tiedBN.map(b=>esc(b.name)))].join(' & ');
+    accoladesHtml+=`<span>Best Nine: <strong>${bnNames}</strong> ${fmtPar(bestScore)}${tiedBN.length===1?' · '+tiedBN[0].label:''}</span>`;
   }
   document.getElementById('champAccolades').innerHTML=accoladesHtml;
 
@@ -800,7 +826,7 @@ function renderHighlights(complete){
       const b=tied[0];
       bestNineCard=`<div class="hl-card hl-hot"><div class="hl-label">🔥 Best Nine</div><div class="hl-name">${esc(b.name)}</div><div class="hl-detail">${b.gross} gross (${fmtPar(b.score)}) · ${b.label}</div></div>`;
     }else{
-      const names=tied.map(b=>esc(b.name)).join(' & ');
+      const names=[...new Set(tied.map(b=>esc(b.name)))].join(' & ');
       bestNineCard=`<div class="hl-card hl-hot"><div class="hl-label">🔥 Best Nine</div><div class="hl-name">${names}</div><div class="hl-detail">${fmtPar(bestScore)} net-to-par</div></div>`;
     }
   }
@@ -822,7 +848,7 @@ function renderHighlights(complete){
       const g=tied[0];
       bestRoundCard=`<div class="hl-card hl-low"><div class="hl-label">🏆 Best Round</div><div class="hl-name">${esc(g.name)}</div><div class="hl-detail">${fmtPar(g.ntp)} net · R${g.round}</div></div>`;
     }else{
-      const names=tied.map(g=>esc(g.name)).join(' & ');
+      const names=[...new Set(tied.map(g=>esc(g.name)))].join(' & ');
       bestRoundCard=`<div class="hl-card hl-low"><div class="hl-label">🏆 Best Round</div><div class="hl-name">${names}</div><div class="hl-detail">${fmtPar(bestNtp)} net</div></div>`;
     }
   }
@@ -846,12 +872,12 @@ function renderTeams(complete){
   const teamData=Object.entries(teamMap).map(([name,members])=>{
     let ntp=0,thru=0;for(const m of members){const v=calcPlayerView(m,currentView);ntp+=v.netToPar;thru+=v.thru}
     return{name,netToPar:ntp,thru,lastNine:calcLastNine(members)}
-  }).sort((a,b)=>a.netToPar-b.netToPar);
+  }).sort((a,b)=>{if(a.netToPar!==b.netToPar)return a.netToPar-b.netToPar;if(a.lastNine===null&&b.lastNine===null)return 0;if(a.lastNine===null)return 1;if(b.lastNine===null)return-1;return a.lastNine-b.lastNine});
   const container=document.getElementById('teamCard');
   if(!teamData.length){container.innerHTML='<div class="empty-state">No team data available</div>';return}
   let html=teamData.map((t,i)=>{
     const ln=t.lastNine!==null?` <span class="last-nine-badge ${parClass(t.lastNine)}">Last 9: ${fmtPar(t.lastNine)}</span>`:'';
-    const champClass=isFinal&&i===0?' champion':'';
+    const champClass=isFinal&&t.netToPar===teamData[0].netToPar?' champion':'';
     return`<div class="team-row${champClass}" data-team="${esc(t.name)}"><div class="team-rank rank-${i+1}">${i+1}</div><div><div class="team-name">${esc(t.name)}</div><div class="team-thru">Thru ${t.thru}${ln}</div></div><div></div><div class="team-score ${parClass(t.netToPar)}">${fmtPar(t.netToPar)}</div></div>`;
   }).join('');
   if(teamData.length>=2){
@@ -893,8 +919,12 @@ function renderIndividual(complete){
   // Official ranking sort (always by netToPar)
   const data=players.map(p=>{const v=calcPlayerView(p,currentView);return{player:p,...v}}).filter(d=>d.thru>0).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
   const arrows=computeArrows(data);
-  // Assign official rank
-  data.forEach((d,i)=>{d.rank=i+1});
+  // Assign official rank with ties
+  data.forEach((d,i)=>{
+    if(i>0&&d.netToPar===data[i-1].netToPar&&d.net===data[i-1].net){d.rank=data[i-1].rank}else{d.rank=i+1}
+  });
+  const rankCounts={};data.forEach(d=>{rankCounts[d.rank]=(rankCounts[d.rank]||0)+1});
+  data.forEach(d=>{d.tied=rankCounts[d.rank]>1});
   // Re-sort by selected column for display
   if(currentSort!=='netToPar'){
     const key=currentSort;
@@ -931,8 +961,8 @@ function renderIndividual(complete){
         dotsHtml+='</span>';
       }
     }
-    return`<div class="lb-row${pos===1?' is-leader':''}${isFinal&&pos===1?' champion':''}" data-player="${esc(d.player.name)}">
-      <span class="lb-pos ${pos<=3?'top-3':''}">${pos}</span>
+    return`<div class="lb-row${d.rank===1?' is-leader':''}${isFinal&&d.rank===1?' champion':''}" data-player="${esc(d.player.name)}">
+      <span class="lb-pos ${pos<=3?'top-3':''}">${d.tied?'T':''}${pos}</span>
       <div class="lb-name-cell"><div class="lb-player-name">${esc(d.player.name)}${arrowHtml}</div><div class="lb-team-tag">${esc(d.player.team)} ${dotsHtml}</div></div>
       <span class="lb-val">${d.net}</span><span class="lb-val net-par ${parClass(d.netToPar)}">${fmtPar(d.netToPar)}</span><span class="lb-val">${d.gross}</span><span class="lb-thru">${d.thru}</span>
     </div>`;
@@ -1020,11 +1050,15 @@ function renderChart(){
       }
     }
   });
-  // Dismiss tooltip on mobile tap-away
-  ctx.canvas.addEventListener('click',function(e){
-    const pts=chartInstance.getElementsAtEventForMode(e,'index',{intersect:false},false);
-    if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.update('none')}
-  });
+  // Dismiss tooltip on mobile tap-away (only add once)
+  if(!ctx.canvas._chartTapHandler){
+    ctx.canvas._chartTapHandler=function(e){
+      if(!chartInstance)return;
+      const pts=chartInstance.getElementsAtEventForMode(e,'index',{intersect:false},false);
+      if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.update('none')}
+    };
+    ctx.canvas.addEventListener('click',ctx.canvas._chartTapHandler);
+  }
 }
 
 /* ═══ HISTORY ═══ */
@@ -1037,8 +1071,21 @@ function renderHistory(){
     if(!rp.length){html+='<div class="history-upcoming">Upcoming</div>'}
     else{
       const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);
-      if(byNet.length>0)html+=`<div class="history-place"><span><span class="history-medal gold">1st</span>${esc(byNet[0].name)}</span><span class="history-place-score">${byNet[0].gross} / ${fmtPar(byNet[0].netToPar)}</span></div>`;
-      if(byNet.length>1)html+=`<div class="history-place"><span><span class="history-medal silver">2nd</span>${esc(byNet[1].name)}</span><span class="history-place-score">${byNet[1].gross} / ${fmtPar(byNet[1].netToPar)}</span></div>`;
+      if(byNet.length>0){
+        const bestNtp=byNet[0].netToPar;
+        const tied1st=byNet.filter(p=>p.netToPar===bestNtp);
+        const label1=tied1st.length>1?'T1':'1st';
+        const names1=tied1st.map(p=>esc(p.name)).join(' & ');
+        html+=`<div class="history-place"><span><span class="history-medal gold">${label1}</span>${names1}</span><span class="history-place-score">${tied1st.length===1?tied1st[0].gross+' / ':'' }${fmtPar(bestNtp)}</span></div>`;
+        const rest=byNet.filter(p=>p.netToPar!==bestNtp);
+        if(rest.length>0){
+          const secondNtp=rest[0].netToPar;
+          const tied2nd=rest.filter(p=>p.netToPar===secondNtp);
+          const label2=tied2nd.length>1?'T2':'2nd';
+          const names2=tied2nd.map(p=>esc(p.name)).join(' & ');
+          html+=`<div class="history-place"><span><span class="history-medal silver">${label2}</span>${names2}</span><span class="history-place-score">${tied2nd.length===1?tied2nd[0].gross+' / ':''}${fmtPar(secondNtp)}</span></div>`;
+        }
+      }
       if(!byNet.length&&rp.length)html+='<div class="history-upcoming">In progress…</div>';
     }
     html+='</div>';
@@ -1049,7 +1096,7 @@ function renderHistory(){
 /* ═══ HANDICAPS ═══ */
 function renderHandicaps(){
   document.getElementById('hcBody').innerHTML=[...players].sort((a,b)=>a.hi-b.hi).map(p=>{
-    const chs=[1,2,3,4].map(rn=>`<td class="hc-val">${getCH(p.hi,rn)||'—'}</td>`).join('');
+    const chs=[1,2,3,4].map(rn=>{const cName=getCourseName(rn);return`<td class="hc-val">${cName&&courses[cName]?getCH(p.hi,rn):'—'}</td>`}).join('');
     return`<tr><td class="hc-name">${esc(p.name)}</td><td class="hc-val">${p.hi.toFixed(1)}</td>${chs}</tr>`;
   }).join('');
 }
@@ -1063,7 +1110,8 @@ function openPlayerModal(name){
   let isChamp=false;
   if(complete&&isTourn){
     const sorted=players.map(p=>{const v=calcPlayerView(p,'tournament');return{name:p.name,netToPar:v.netToPar,net:v.net}}).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
-    isChamp=sorted[0].name===name;
+    const pv=sorted.find(s=>s.name===name);
+    isChamp=pv&&pv.netToPar===sorted[0].netToPar&&pv.net===sorted[0].net;
   }
   const sheet=document.querySelector('#playerModal .modal-sheet');
   sheet.classList.toggle('champion-modal',isChamp);
@@ -1095,12 +1143,13 @@ function openPlayerModal(name){
 
   let roundsHtml='';
   if(currentView==='tournament'){
-    document.getElementById('pmRoundsTitle').textContent='Round Breakdown (Gross)';
+    document.getElementById('pmRoundsTitle').innerHTML='<span>Round Breakdown (Gross)</span>';
     for(let rn=1;rn<=4;rn++){const res=calcPlayerRound(player,rn);roundsHtml+=`<div class="modal-round-row"><span class="modal-round-label">Round ${rn}</span><span class="modal-round-val">${res&&res.thru>0?res.gross:'—'}</span></div>`}
     document.getElementById('pmSummary').textContent=`Handicap Index: ${player.hi}`;
   }else{
     const rn=parseInt(currentView);
-    document.getElementById('pmRoundsTitle').textContent=`Round ${rn} Detail (Gross)`;
+    const cName=getCourseName(rn);
+    document.getElementById('pmRoundsTitle').innerHTML=`<span>Round ${rn} Detail (Gross)</span>${cName?'<span class="mrt-line"></span><span class="mrt-course">'+esc(cName)+'</span>':''}`;
     const res=calcPlayerRound(player,rn);
     if(res){roundsHtml+=`<div class="modal-round-row"><span class="modal-round-label">Front Nine</span><span class="modal-round-val">${res.hasFront?res.frontGross:'—'}</span></div><div class="modal-round-row"><span class="modal-round-label">Back Nine</span><span class="modal-round-val">${res.hasBack?res.backGross:'—'}</span></div>`}
     document.getElementById('pmSummary').textContent=`Course Handicap: ${getCH(player.hi,rn)}`;
@@ -1121,7 +1170,7 @@ function openTeamModal(teamName){
     const teamMap2={};
     for(const p of players){if(!p.team)continue;if(!teamMap2[p.team])teamMap2[p.team]=0;teamMap2[p.team]+=calcPlayerView(p,'tournament').netToPar}
     const sorted=Object.entries(teamMap2).sort((a,b)=>a[1]-b[1]);
-    isChamp=sorted[0][0]===teamName;
+    isChamp=teamMap2[teamName]!==undefined&&teamMap2[teamName]===sorted[0][1];
   }
   const sheet=document.querySelector('#teamModal .modal-sheet');
   sheet.classList.toggle('champion-modal',isChamp);
@@ -1134,17 +1183,15 @@ function openTeamModal(teamName){
     return{player:m,...v};
   }).sort((a,b)=>a.netToPar-b.netToPar);
 
-  // Find MVP (lowest net-to-par on team)
-  const mvp=memberData[0];
-
   // Find best single round on team (respect current view)
-  let bestRound=null;
+  let bestRoundNtp=Infinity, bestRounds=[];
   const tmRounds=currentView==='tournament'?[1,2,3,4]:[parseInt(currentView)];
   for(const m of members){
     for(const rn of tmRounds){
       const res=calcPlayerRound(m,rn);
-      if(res&&res.thru===18&&(!bestRound||res.netToPar<bestRound.ntp)){
-        bestRound={name:m.name,rn,ntp:res.netToPar,gross:res.gross};
+      if(res&&res.thru===18){
+        if(res.netToPar<bestRoundNtp){bestRoundNtp=res.netToPar;bestRounds=[{name:m.name,rn,ntp:res.netToPar,gross:res.gross}]}
+        else if(res.netToPar===bestRoundNtp){bestRounds.push({name:m.name,rn,ntp:res.netToPar,gross:res.gross})}
       }
     }
   }
@@ -1193,8 +1240,9 @@ function openTeamModal(teamName){
   }
 
   // Best round callout
-  if(bestRound){
-    html+=`<div class="tm-best"><div class="tm-best-label">⭐ Best Round on Team</div><div class="tm-best-val">${esc(bestRound.name)} — ${bestRound.gross} gross (${fmtPar(bestRound.ntp)}) in R${bestRound.rn}</div></div>`;
+  if(bestRounds.length){
+    const brText=bestRounds.map(b=>esc(b.name)+' — '+b.gross+' gross ('+fmtPar(b.ntp)+') in R'+b.rn).join('<br>');
+    html+=`<div class="tm-best"><div class="tm-best-label">⭐ Best Round on Team</div><div class="tm-best-val">${brText}</div></div>`;
   }
 
   html+=`<div class="tm-tap-hint">Tap a player to see their full details</div>`;
@@ -1241,10 +1289,9 @@ async function scanYears(){
     const rows=await fetchTab('Config');
     const found=[];
     for(let i=1;i<rows.length;i++){
-      const y=parseInt(rows[i][0]);
-      if(y>=2000 && y<=2100)found.push(y);
+      const v=(rows[i][0]||'').trim();
+      if(v)found.push(v);
     }
-    found.sort((a,b)=>a-b);
     return found.length?found:[START_YEAR];
   }catch{return[START_YEAR]}
 }
@@ -1257,7 +1304,7 @@ function renderYearSelector(){
   btns.innerHTML=availableYears.map(y=>`<button class="ctrl-btn${y===currentYear?' active':''}" data-year="${y}">${y}</button>`).join('');
   btns.querySelectorAll('.ctrl-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
-      const y=parseInt(btn.dataset.year);
+      const y=btn.dataset.year;
       if(y===currentYear)return;
       btns.querySelectorAll('.ctrl-btn').forEach(b=>b.classList.remove('active'));
       btn.classList.add('active');
@@ -1275,8 +1322,11 @@ let recordsOpen = false;
 
 function showRecordsPage(){
   recordsOpen = true;
-  // Hide main content sections
+  // Clear current year cache so we get fresh live data
+  delete allYearsData[currentYear];
+  // Hide main content sections and records link
   document.querySelectorAll('#yearControls, .controls, #championBanner, #highlights, #teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='none');
+  document.getElementById('recordsLinkWrap').style.display='none';
   document.getElementById('recordsPage').style.display='block';
   loadAllYearsAndRender();
   window.scrollTo(0,0);
@@ -1291,6 +1341,7 @@ function hideRecordsPage(){
   document.querySelectorAll('#teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='block');
   document.getElementById('championBanner').style.display='';
   document.getElementById('highlights').style.display='';
+  if(availableYears.length>1) document.getElementById('recordsLinkWrap').style.display='block';
   lastCSV='';
   render();
   window.scrollTo(0,0);
@@ -1351,24 +1402,37 @@ function renderChampionsWall(){
     // Individual champion
     const indiv=yd.players.map(p=>{let ntp=0,net=0;for(let rn=1;rn<=4;rn++){const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(res){ntp+=res.netToPar;net+=res.net}}return{name:p.name,netToPar:ntp,net}}).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
     const margin=teams.length>=2?Math.abs(teams[0].netToPar-teams[1].netToPar):0;
-    const loser=teams.length>=2?teams[1].name:'';
-    champData.push({year:y,team:teams[0].name,margin,loser,individual:indiv[0].name,score:indiv[0].netToPar,roster:teams[0].members.map(m=>{let ntp=0;for(let rn=1;rn<=4;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res)ntp+=res.netToPar}return{name:m.name,ntp}}).sort((a,b)=>a.ntp-b.ntp)});
+    const tiedChampTeams=teams.filter(t=>t.netToPar===teams[0].netToPar);
+    const loser=teams.length>tiedChampTeams.length?teams[tiedChampTeams.length].name:'';
+    const tiedIndivChamps=indiv.filter(d=>d.netToPar===indiv[0].netToPar&&d.net===indiv[0].net);
+    const teamRosters=tiedChampTeams.map(ct=>{
+      const members=ct.members.map(m=>{let ntp=0;for(let rn=1;rn<=4;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res)ntp+=res.netToPar}return{name:m.name,ntp}}).sort((a,b)=>a.ntp-b.ntp);
+      return{teamName:ct.name,members};
+    });
+    champData.push({year:y,teams:tiedChampTeams.map(t=>t.name),margin,loser,individuals:tiedIndivChamps.map(d=>d.name),score:indiv[0].netToPar,teamRosters});
   }
   if(!champData.length){wall.innerHTML='<div class="empty-state">No completed tournaments yet</div>';return}
   wall.innerHTML=[...champData].reverse().map(c=>{
-    const marginText=c.margin===0?'Tied':'Won by '+c.margin+' stroke'+(c.margin!==1?'s':'')+' over '+esc(c.loser);
+    const marginText=c.margin===0&&c.teams.length>1?'Tied':c.margin===0?'':'Won by '+c.margin+' stroke'+(c.margin!==1?'s':'')+' over '+esc(c.loser);
+    const teamLabel=c.teams.length>1?'Team Champions':'Team Champion';
+    const teamNames=c.teams.map(t=>esc(t)).join(' & ');
+    const indivLabel=c.individuals.length>1?'Individual Champions':'Individual Champion';
+    const indivNames=c.individuals.map(n=>esc(n)).join(' & ');
+    let rosterHtml='';
+    if(c.teams.length>1){
+      rosterHtml=c.teamRosters.map(tr=>`<div class="champ-roster-label">${esc(tr.teamName)}</div>${tr.members.map(m=>`<div class="champ-roster-row"><span class="r-name">${esc(m.name)}</span><span class="r-score">${fmtPar(m.ntp)}</span></div>`).join('')}`).join('');
+    }else{
+      rosterHtml=`<div class="champ-roster-label">Winning Roster</div>${c.teamRosters[0].members.map(m=>`<div class="champ-roster-row"><span class="r-name">${esc(m.name)}</span><span class="r-score">${fmtPar(m.ntp)}</span></div>`).join('')}`;
+    }
     return`<div class="champ-card" data-year="${c.year}">
       <div class="champ-year">${c.year}</div>
-      <div class="champ-label">Team Champion</div>
-      <div class="champ-name">${esc(c.team)}</div>
-      <div class="champ-detail">${marginText}</div>
-      <div class="champ-label">Individual Champion</div>
-      <div class="champ-name">${esc(c.individual)}</div>
+      <div class="champ-label">${teamLabel}</div>
+      <div class="champ-name">${teamNames}</div>
+      ${marginText?`<div class="champ-detail">${marginText}</div>`:''}
+      <div class="champ-label">${indivLabel}</div>
+      <div class="champ-name">${indivNames}</div>
       <div class="champ-score">${fmtPar(c.score)} net to par</div>
-      <div class="champ-roster" id="roster-${c.year}">
-        <div class="champ-roster-label">Winning Roster</div>
-        ${c.roster.map(m=>`<div class="champ-roster-row"><span class="r-name">${esc(m.name)}</span><span class="r-score">${fmtPar(m.ntp)}</span></div>`).join('')}
-      </div>
+      <div class="champ-roster" id="roster-${c.year}">${rosterHtml}</div>
       <div class="champ-tap-hint" id="hint-${c.year}">Tap to see roster</div>
     </div>`;
   }).join('');
@@ -1386,7 +1450,7 @@ function renderChampionsWall(){
 
 function renderTeamRecords(){
   const card=document.getElementById('teamRecordsCard');
-  let bestTourn={val:Infinity,detail:''},largestVictory={val:0,detail:''},closestFinish={val:Infinity,detail:''},bestRound={val:Infinity,detail:''},worstRound={val:-Infinity,detail:''};
+  let bestTourn={val:Infinity,details:[]},largestVictory={val:0,details:[]},closestFinish={val:Infinity,details:[]},bestRound={val:Infinity,details:[]},worstRound={val:-Infinity,details:[]};
   for(const y of availableYears){
     const yd=allYearsData[y];if(!yd||!yd.players.length)continue;
     const teamMap={};
@@ -1394,17 +1458,18 @@ function renderTeamRecords(){
     // Tournament totals
     const teamTotals=Object.entries(teamMap).map(([name,members])=>{
       let ntp=0,complete=true;
-      for(const m of members){for(let rn=1;rn<=4;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res)ntp+=res.netToPar;else{complete=false}}}
+      for(const m of members){for(let rn=1;rn<=4;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res&&res.thru===18)ntp+=res.netToPar;else{complete=false}}}
       return{name,netToPar:ntp,members,complete};
     }).sort((a,b)=>a.netToPar-b.netToPar);
     // Best tournament
-    if(teamTotals[0]&&teamTotals[0].complete&&teamTotals[0].netToPar<bestTourn.val){bestTourn={val:teamTotals[0].netToPar,detail:esc(teamTotals[0].name)+' · '+y}}
+    if(teamTotals[0]&&teamTotals[0].complete){const v=teamTotals[0].netToPar,d=esc(teamTotals[0].name)+' · '+y;if(v<bestTourn.val){bestTourn={val:v,details:[d]}}else if(v===bestTourn.val){bestTourn.details.push(d)}}
     // Margins
     const completedTeams=teamTotals.filter(t=>t.complete);
     if(completedTeams.length>=2){
       const margin=Math.abs(completedTeams[0].netToPar-completedTeams[1].netToPar);
-      if(margin>largestVictory.val){largestVictory={val:margin,detail:esc(completedTeams[0].name)+' over '+esc(completedTeams[1].name)+' · '+y}}
-      if(margin<closestFinish.val){closestFinish={val:margin,detail:esc(completedTeams[0].name)+' over '+esc(completedTeams[1].name)+' · '+y}}
+      const md=margin===0?esc(completedTeams[0].name)+' & '+esc(completedTeams[1].name)+' (tied) · '+y:esc(completedTeams[0].name)+' over '+esc(completedTeams[1].name)+' · '+y;
+      if(margin>largestVictory.val){largestVictory={val:margin,details:[md]}}else if(margin===largestVictory.val){largestVictory.details.push(md)}
+      if(margin<closestFinish.val){closestFinish={val:margin,details:[md]}}else if(margin===closestFinish.val){closestFinish.details.push(md)}
     }
     // Round-by-round
     for(let rn=1;rn<=4;rn++){
@@ -1412,42 +1477,75 @@ function renderTeamRecords(){
         let rnNtp=0,allPlayed=true;
         for(const m of members){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res&&res.thru===18)rnNtp+=res.netToPar;else allPlayed=false}
         if(!allPlayed)continue;
-        if(rnNtp<bestRound.val){bestRound={val:rnNtp,detail:esc(tName)+' · R'+rn+' · '+y}}
-        if(rnNtp>worstRound.val){worstRound={val:rnNtp,detail:esc(tName)+' · R'+rn+' · '+y}}
+        const rd=esc(tName)+' · R'+rn+' · '+y;
+        if(rnNtp<bestRound.val){bestRound={val:rnNtp,details:[rd]}}else if(rnNtp===bestRound.val){bestRound.details.push(rd)}
+        if(rnNtp>worstRound.val){worstRound={val:rnNtp,details:[rd]}}else if(rnNtp===worstRound.val){worstRound.details.push(rd)}
       }
     }
   }
   const rows=[];
-  if(bestTourn.detail)rows.push({icon:'🏆',label:'Best Tournament',value:fmtPar(bestTourn.val),detail:bestTourn.detail});
-  if(largestVictory.detail)rows.push({icon:'💪',label:'Largest Victory',value:largestVictory.val+' stroke'+(largestVictory.val!==1?'s':''),detail:largestVictory.detail});
-  if(closestFinish.detail)rows.push({icon:'🤏',label:'Closest Finish',value:closestFinish.val+' stroke'+(closestFinish.val!==1?'s':''),detail:closestFinish.detail});
-  if(bestRound.detail)rows.push({icon:'🔥',label:'Best Team Round',value:fmtPar(bestRound.val),detail:bestRound.detail});
-  if(worstRound.detail)rows.push({icon:'🥄',label:'Worst Team Round',value:fmtPar(worstRound.val),detail:worstRound.detail});
+  if(bestTourn.details.length)rows.push({icon:'🏆',label:'Best Tournament',value:fmtPar(bestTourn.val),detail:bestTourn.details.join('<br>')});
+  if(largestVictory.details.length)rows.push({icon:'💪',label:'Largest Victory',value:largestVictory.val+' stroke'+(largestVictory.val!==1?'s':''),detail:largestVictory.details.join('<br>')});
+  if(closestFinish.details.length)rows.push({icon:'🤏',label:'Closest Finish',value:closestFinish.val+' stroke'+(closestFinish.val!==1?'s':''),detail:closestFinish.details.join('<br>')});
+  if(bestRound.details.length)rows.push({icon:'🔥',label:'Best Team Round',value:fmtPar(bestRound.val),detail:bestRound.details.join('<br>')});
+  if(worstRound.details.length)rows.push({icon:'🥄',label:'Worst Team Round',value:fmtPar(worstRound.val),detail:worstRound.details.join('<br>')});
   card.innerHTML=rows.length?rows.map((r,i)=>`<div class="rec-row"><div class="rec-icon">${r.icon}</div><div class="rec-info"><div class="rec-label">${r.label}</div><div class="rec-detail">${r.detail}</div></div><div class="rec-value">${r.value}</div></div>`).join(''):'<div class="empty-state">No records yet</div>';
 }
 
 function renderIndivRecords(){
   const card=document.getElementById('indivRecordsCard');
-  let bestTourn={val:Infinity,detail:''},bestNetRound={val:Infinity,detail:''},bestGrossRound={val:Infinity,detail:''};
+  let bestTourn={val:Infinity,details:[]},bestNetRound={val:Infinity,details:[]},bestGrossRound={val:Infinity,details:[]};
+  const teamChampCounts={}, indivChampCounts={};
   for(const y of availableYears){
     const yd=allYearsData[y];if(!yd||!yd.players.length)continue;
+    // Check if year is complete
+    let complete=true;
+    for(const p of yd.players){for(let rn=1;rn<=4;rn++){const r=p.rounds[String(rn)];if(!r||!r.front||!r.back||r.front<=0||r.back<=0){complete=false;break}}if(!complete)break}
     for(const p of yd.players){
       // Tournament
       let tNtp=0,tComplete=true;
       for(let rn=1;rn<=4;rn++){const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(res&&res.thru===18)tNtp+=res.netToPar;else tComplete=false}
-      if(tComplete&&tNtp<bestTourn.val){bestTourn={val:tNtp,detail:esc(p.name)+' · '+y}}
+      if(tComplete){if(tNtp<bestTourn.val){bestTourn={val:tNtp,details:[esc(p.name)+' · '+y]}}else if(tNtp===bestTourn.val){bestTourn.details.push(esc(p.name)+' · '+y)}}
       // Rounds
       for(let rn=1;rn<=4;rn++){
         const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(!res||res.thru<18)continue;
-        if(res.netToPar<bestNetRound.val){bestNetRound={val:res.netToPar,detail:esc(p.name)+' · R'+rn+' · '+y}}
-        if(res.gross<bestGrossRound.val){bestGrossRound={val:res.gross,detail:esc(p.name)+' · R'+rn+' · '+y}}
+        if(res.netToPar<bestNetRound.val){bestNetRound={val:res.netToPar,details:[esc(p.name)+' · R'+rn+' · '+y]}}else if(res.netToPar===bestNetRound.val){bestNetRound.details.push(esc(p.name)+' · R'+rn+' · '+y)}
+        if(res.gross<bestGrossRound.val){bestGrossRound={val:res.gross,details:[esc(p.name)+' · R'+rn+' · '+y]}}else if(res.gross===bestGrossRound.val){bestGrossRound.details.push(esc(p.name)+' · R'+rn+' · '+y)}
+      }
+    }
+    // Championship counts (only for complete years)
+    if(complete){
+      // Team champion — find winning team, credit all members
+      const teamMap={};
+      for(const p of yd.players){if(!p.team)continue;if(!teamMap[p.team])teamMap[p.team]=[];teamMap[p.team].push(p)}
+      const teams=Object.entries(teamMap).map(([name,members])=>{
+        let ntp=0;for(const m of members){for(let rn=1;rn<=4;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res)ntp+=res.netToPar}}
+        return{name,netToPar:ntp,members};
+      }).sort((a,b)=>a.netToPar-b.netToPar);
+      const tiedWinTeams=teams.filter(t=>t.netToPar===teams[0].netToPar);
+      for(const wt of tiedWinTeams){for(const m of wt.members){
+        if(!teamChampCounts[m.name])teamChampCounts[m.name]=[];
+        teamChampCounts[m.name].push(y);
+      }}
+      // Individual champion
+      const indiv=yd.players.map(p=>{let ntp=0,net=0;for(let rn=1;rn<=4;rn++){const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(res){ntp+=res.netToPar;net+=res.net}}return{name:p.name,netToPar:ntp,net}}).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
+      const tiedWinIndiv=indiv.filter(d=>d.netToPar===indiv[0].netToPar&&d.net===indiv[0].net);
+      for(const wi of tiedWinIndiv){
+        if(!indivChampCounts[wi.name])indivChampCounts[wi.name]=[];
+        indivChampCounts[wi.name].push(y);
       }
     }
   }
   const rows=[];
-  if(bestTourn.detail)rows.push({icon:'👑',label:'Best Tournament',value:fmtPar(bestTourn.val),detail:bestTourn.detail});
-  if(bestNetRound.detail)rows.push({icon:'🏆',label:'Best Net Round',value:fmtPar(bestNetRound.val),detail:bestNetRound.detail});
-  if(bestGrossRound.detail)rows.push({icon:'💪',label:'Best Gross Round',value:String(bestGrossRound.val),detail:bestGrossRound.detail});
+  if(bestTourn.details.length)rows.push({icon:'👑',label:'Best Tournament',value:fmtPar(bestTourn.val),detail:bestTourn.details.join('<br>')});
+  if(bestNetRound.details.length)rows.push({icon:'🏆',label:'Best Net Round',value:fmtPar(bestNetRound.val),detail:bestNetRound.details.join('<br>')});
+  if(bestGrossRound.details.length)rows.push({icon:'💪',label:'Best Gross Round',value:String(bestGrossRound.val),detail:bestGrossRound.details.join('<br>')});
+  // Most team championships
+  const teamChampSorted=Object.entries(teamChampCounts).sort((a,b)=>b[1].length-a[1].length);
+  if(teamChampSorted.length){const topCount=teamChampSorted[0][1].length;const tied=teamChampSorted.filter(e=>e[1].length===topCount);const detail=tied.map(tc=>esc(tc[0])+' ('+tc[1].join(', ')+')').join('<br>');rows.push({icon:'🥇',label:'Most Team Championships',value:String(topCount),detail})};
+  // Most individual championships
+  const indivChampSorted=Object.entries(indivChampCounts).sort((a,b)=>b[1].length-a[1].length);
+  if(indivChampSorted.length){const topCount=indivChampSorted[0][1].length;const tied=indivChampSorted.filter(e=>e[1].length===topCount);const detail=tied.map(ic=>esc(ic[0])+' ('+ic[1].join(', ')+')').join('<br>');rows.push({icon:'🎖️',label:'Most Individual Championships',value:String(topCount),detail})};
   card.innerHTML=rows.length?rows.map((r,i)=>`<div class="rec-row"><div class="rec-icon">${r.icon}</div><div class="rec-info"><div class="rec-label">${r.label}</div><div class="rec-detail">${r.detail}</div></div><div class="rec-value">${r.value}</div></div>`).join(''):'<div class="empty-state">No records yet</div>';
 }
 
@@ -1459,14 +1557,14 @@ function renderCourseHistory(){
     for(let rn=1;rn<=4;rn++){
       const cName=yd.roundMap[String(rn)];if(!cName)continue;
       const c=yd.courses[cName];if(!c)continue;
-      if(!courseData[cName])courseData[cName]={rounds:0,totalNtp:0,totalPlayers:0,bestNet:Infinity,bestBy:'',par:c.par,rating:c.rating,slope:c.slope};
+      if(!courseData[cName])courseData[cName]={rounds:0,totalNtp:0,totalPlayers:0,bestNet:Infinity,bestBys:[],par:c.par,rating:c.rating,slope:c.slope};
       let roundHasScores=false;
       for(const p of yd.players){
         const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(!res||res.thru<18)continue;
         roundHasScores=true;
         courseData[cName].totalNtp+=res.netToPar;
         courseData[cName].totalPlayers++;
-        if(res.netToPar<courseData[cName].bestNet){courseData[cName].bestNet=res.netToPar;courseData[cName].bestBy=esc(p.name)+' · R'+rn+' · '+y}
+        if(res.netToPar<courseData[cName].bestNet){courseData[cName].bestNet=res.netToPar;courseData[cName].bestBys=[esc(p.name)+' · R'+rn+' · '+y]}else if(res.netToPar===courseData[cName].bestNet){courseData[cName].bestBys.push(esc(p.name)+' · R'+rn+' · '+y)}
       }
       if(roundHasScores)courseData[cName].rounds++;
     }
@@ -1475,15 +1573,15 @@ function renderCourseHistory(){
   if(!sorted.length){card.innerHTML='<div class="empty-state">No course data yet</div>';return}
   card.innerHTML=sorted.map(([name,d],i)=>{
     const avgNtp=d.totalPlayers>0?(d.totalNtp/d.totalPlayers):0;
-    const avgStr=avgNtp>=0?'+'+avgNtp.toFixed(1):avgNtp.toFixed(1);
+    const avgStr=avgNtp===0?'E':(avgNtp>0?'+'+avgNtp.toFixed(1):avgNtp.toFixed(1));
     const avgClass=avgNtp<0?'under':(avgNtp>0?'over':'even');
     const bestClass=d.bestNet<0?'under':(d.bestNet>0?'over':'even');
     return`<div class="course-hist-item">
-      <div class="course-hist-name">${esc(name)}</div>
+      <div class="course-hist-name"><span class="course-hist-name-text">${esc(name)}</span><span class="course-hist-name-line"></span><span class="course-hist-name-info">Par ${d.par} / ${d.rating} / ${d.slope}</span></div>
       <div class="course-hist-stats">
         <div class="course-hist-stat"><div class="course-hist-stat-label">Rounds Played</div><div class="course-hist-stat-val">${d.rounds}</div></div>
         <div class="course-hist-stat"><div class="course-hist-stat-label">Avg Net to Par</div><div class="course-hist-stat-val">${avgStr}</div></div>
-        <div class="course-hist-stat"><div class="course-hist-stat-label">Best Net Round</div><div class="course-hist-stat-val">${fmtPar(d.bestNet)}</div>${d.bestBy?`<div class="course-hist-stat-sub">${d.bestBy}</div>`:''}</div>
+        <div class="course-hist-stat"><div class="course-hist-stat-label">Best Net Round</div><div class="course-hist-stat-val">${fmtPar(d.bestNet)}</div>${d.bestBys.length?`<div class="course-hist-stat-sub">${d.bestBys.join('<br>')}</div>`:''}</div>
       </div>
     </div>`;
   }).join('');
