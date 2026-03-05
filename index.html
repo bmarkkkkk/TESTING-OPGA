@@ -1424,7 +1424,8 @@ function hideRecordsPage(){
   // Restore main content
   if(availableYears.length>1) document.getElementById('yearControls').style.display='flex';
   document.querySelectorAll('.controls').forEach(el=>el.style.display='flex');
-  document.querySelectorAll('#teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='block');
+  document.querySelectorAll('#individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='block');
+  if(teamMode){document.getElementById('teamSection').style.display='block';document.getElementById('chartSection').style.display='block'}
   document.getElementById('championBanner').style.display='';
   document.getElementById('highlights').style.display='';
   if(availableYears.length>1) document.getElementById('recordsLinkWrap').style.display='block';
@@ -1620,7 +1621,7 @@ function renderIndivRecords(){
         let ntp=0;for(const m of members){for(let rn=1;rn<=yTR;rn++){const res=recCalcRound(m,rn,yd.courses,yd.roundMap);if(res)ntp+=res.netToPar}}
         return{name,netToPar:ntp,members};
       }).sort((a,b)=>a.netToPar-b.netToPar);
-      const tiedWinTeams=teams.filter(t=>t.netToPar===teams[0].netToPar);
+      const tiedWinTeams=teams.length?teams.filter(t=>t.netToPar===teams[0].netToPar):[];
       for(const wt of tiedWinTeams){for(const m of wt.members){
         if(!teamChampCounts[m.name])teamChampCounts[m.name]=[];
         teamChampCounts[m.name].push(y);
