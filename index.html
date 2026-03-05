@@ -789,8 +789,11 @@ function renderChampionState(complete){
 
   // Individual champion
   const indivData=players.map(p=>{const v=calcPlayerView(p,'tournament');return{name:p.name,netToPar:v.netToPar,net:v.net}}).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
+  const tiedIndiv=indivData.filter(d=>d.netToPar===indivData[0].netToPar&&d.net===indivData[0].net);
+  const indivNames=tiedIndiv.map(d=>'<strong>'+esc(d.name)+'</strong>').join(' & ');
 
-  document.querySelector('.champion-label').innerHTML=`<span style="font-size:1.6em;vertical-align:middle;position:relative;top:-1px">🏆</span> ${currentYear} Champions`;
+  // Banner label — "Champion" singular for individual-only, "Champions" for teams or ties
+  document.querySelector('.champion-label').innerHTML=`<span style="font-size:1.6em;vertical-align:middle;position:relative;top:-1px">🏆</span> ${currentYear} ${teamMode?'Champions':(tiedIndiv.length>1?'Champions':'Champion')}`;
 
   if(teamMode&&teamData.length){
     const tiedTeams=teamData.filter(t=>t.netToPar===teamData[0].netToPar);
@@ -810,9 +813,15 @@ function renderChampionState(complete){
     document.getElementById('champMargin').style.display='none';
     banner.style.cursor='default';banner.dataset.champTeam='';
   }
-  const tiedIndiv=indivData.filter(d=>d.netToPar===indivData[0].netToPar&&d.net===indivData[0].net);
-  const indivNames=tiedIndiv.map(d=>'<strong>'+esc(d.name)+'</strong>').join(' & ');
-  document.getElementById('champIndividual').innerHTML='<span style="font-size:0.72em;vertical-align:middle;position:relative;top:-1px">🏆</span> Individual Champion'+(tiedIndiv.length>1?'s':'')+': '+indivNames+' ('+fmtPar(indivData[0].netToPar)+')';
+
+  // Individual champion display
+  if(teamMode){
+    document.getElementById('champIndividual').innerHTML='<span style="font-size:0.72em;vertical-align:middle;position:relative;top:-1px">🏆</span> Individual Champion'+(tiedIndiv.length>1?'s':'')+': '+indivNames+' ('+fmtPar(indivData[0].netToPar)+')';
+    document.getElementById('champIndividual').style.fontSize='';
+  }else{
+    document.getElementById('champIndividual').innerHTML=indivNames+' <span style="font-weight:400;color:var(--text-secondary)">('+fmtPar(indivData[0].netToPar)+')</span>';
+    document.getElementById('champIndividual').style.fontSize='1.1rem';
+  }
 
   // Best Round & Best Nine for banner
   let bestRoundList=[], bestNines=[];
