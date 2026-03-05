@@ -1595,6 +1595,7 @@ function renderIndivRecords(){
   for(const y of availableYears){
     const yd=allYearsData[y];if(!yd||!yd.players.length)continue;
     // Check if year is complete
+    const yTR=yd.totalRounds||4;
     let complete=true;
     for(const p of yd.players){for(let rn=1;rn<=yTR;rn++){const r=p.rounds[String(rn)];if(!r||!r.front||!r.back||r.front<=0||r.back<=0){complete=false;break}}if(!complete)break}
     for(const p of yd.players){
