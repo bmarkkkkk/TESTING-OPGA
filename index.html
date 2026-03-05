@@ -370,6 +370,18 @@
 
     /* Footer / Misc */
     .footer { text-align:center; padding:32px 0 20px; font-size:0.7rem; color:var(--text-muted); }
+
+    /* Info Tab Buttons */
+    .info-tabs-wrap { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:24px; }
+    .info-tab-btn { display:inline-block; font-size:0.68rem; font-weight:500; color:var(--text-secondary); cursor:pointer; letter-spacing:0.03em; padding:5px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(245,240,232,0.04); transition:all var(--transition); }
+    .info-tab-btn:hover { background:rgba(245,240,232,0.08); color:var(--text-primary); }
+
+    /* Info Modal Content */
+    .info-modal-title { font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.5rem; color:var(--cream); text-align:center; margin-bottom:16px; }
+    .info-item { padding:12px 0; border-bottom:1px solid var(--border); }
+    .info-item:last-child { border-bottom:none; }
+    .info-item-title { font-weight:600; font-size:0.9rem; color:var(--cream); margin-bottom:4px; }
+    .info-item-body { font-size:0.82rem; color:var(--text-secondary); line-height:1.5; }
     .loading-msg { text-align:center; padding:40px 0; color:var(--text-muted); font-size:0.85rem; }
     .empty-state { text-align:center; padding:30px 20px; color:var(--text-muted); font-size:0.85rem; }
 
@@ -575,7 +587,17 @@
       </div>
     </div>
 
+    <div class="info-tabs-wrap" id="infoTabsWrap" style="display:none"></div>
+
     <div class="footer" id="siteFooter">Live Leaderboard</div>
+  </div>
+
+  <!-- Info Modal -->
+  <div class="modal-overlay" id="infoModal">
+    <div class="modal-sheet">
+      <div class="info-modal-title" id="infoModalTitle"></div>
+      <div id="infoModalBody"></div>
+    </div>
   </div>
 
   <!-- Player Modal -->
@@ -976,13 +998,17 @@ function renderTeams(complete){
   const teamData=Object.entries(teamMap).map(([name,members])=>{
     let ntp=0,thru=0;for(const m of members){const v=calcPlayerView(m,currentView);ntp+=v.netToPar;thru+=v.thru}
     return{name,netToPar:ntp,thru,lastNine:calcLastNine(members)}
-  }).sort((a,b)=>{if(a.netToPar!==b.netToPar)return a.netToPar-b.netToPar;if(a.lastNine===null&&b.lastNine===null)return 0;if(a.lastNine===null)return 1;if(b.lastNine===null)return-1;return a.lastNine-b.lastNine});
+  }).sort((a,b)=>a.netToPar-b.netToPar);
   const container=document.getElementById('teamCard');
   if(!teamData.length){container.innerHTML='<div class="empty-state">No team data available</div>';return}
+  // Assign ranks with ties
+  teamData.forEach((t,i)=>{if(i>0&&t.netToPar===teamData[i-1].netToPar){t.rank=teamData[i-1].rank}else{t.rank=i+1}});
+  const teamRankCounts={};teamData.forEach(t=>{teamRankCounts[t.rank]=(teamRankCounts[t.rank]||0)+1});
+  teamData.forEach(t=>{t.tied=teamRankCounts[t.rank]>1});
   let html=teamData.map((t,i)=>{
     const ln=t.lastNine!==null?` <span class="last-nine-badge ${parClass(t.lastNine)}">Last 9: ${fmtPar(t.lastNine)}</span>`:'';
-    const champClass=isFinal&&t.netToPar===teamData[0].netToPar?' champion':'';
-    return`<div class="team-row${champClass}" data-team="${esc(t.name)}"><div class="team-rank rank-${i+1}">${i+1}</div><div><div class="team-name">${esc(t.name)}</div><div class="team-thru">Thru ${t.thru}${ln}</div></div><div></div><div class="team-score ${parClass(t.netToPar)}">${fmtPar(t.netToPar)}</div></div>`;
+    const champClass=isFinal&&t.rank===1?' champion':'';
+    return`<div class="team-row${champClass}" data-team="${esc(t.name)}"><div class="team-rank rank-${t.rank}">${t.tied?'T':''}${t.rank}</div><div><div class="team-name">${esc(t.name)}</div><div class="team-thru">Thru ${t.thru}${ln}</div></div><div></div><div class="team-score ${parClass(t.netToPar)}">${fmtPar(t.netToPar)}</div></div>`;
   }).join('');
   if(teamData.length>=2){
     const spread=Math.abs(teamData[0].netToPar-teamData[1].netToPar);
@@ -1368,6 +1394,7 @@ function openTeamModal(teamName){
 /* ═══ MODAL CLOSE HANDLERS ═══ */
 document.getElementById('playerModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 document.getElementById('teamModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 
 /* ═══ VIEW CONTROLS ═══ */
 document.querySelectorAll('#viewBtns .ctrl-btn').forEach(btn=>{
@@ -1420,7 +1447,7 @@ function showRecordsPage(){
   // Clear current year cache so we get fresh live data
   delete allYearsData[currentYear];
   // Hide main content sections and records link
-  document.querySelectorAll('#yearControls, .controls, #championBanner, #highlights, #teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='none');
+  document.querySelectorAll('#yearControls, .controls, #championBanner, #highlights, #teamSection, #chartSection, #individualSection, #historySection, #coursesSection, #hcSection, #infoTabsWrap').forEach(el=>el.style.display='none');
   document.getElementById('recordsLinkWrap').style.display='none';
   document.getElementById('recordsPage').style.display='block';
   loadAllYearsAndRender();
@@ -1438,6 +1465,7 @@ function hideRecordsPage(){
   document.getElementById('championBanner').style.display='';
   document.getElementById('highlights').style.display='';
   if(availableYears.length>1) document.getElementById('recordsLinkWrap').style.display='block';
+  if(infoTabs.length) document.getElementById('infoTabsWrap').style.display='flex';
   lastCSV='';
   render();
   window.scrollTo(0,0);
@@ -1704,6 +1732,35 @@ function renderCourseHistory(){
   }).join('');
 }
 
+/* ═══ INFO TABS ═══ */
+let infoTabs = [];
+
+function renderInfoTabButtons(){
+  const wrap=document.getElementById('infoTabsWrap');
+  if(!infoTabs.length){wrap.style.display='none';return}
+  wrap.style.display='flex';
+  wrap.innerHTML=infoTabs.map(t=>`<span class="info-tab-btn" data-tab="${esc(t)}">${esc(t)}</span>`).join('');
+  wrap.querySelectorAll('.info-tab-btn').forEach(btn=>{
+    btn.addEventListener('click',()=>openInfoModal(btn.dataset.tab));
+  });
+}
+
+async function openInfoModal(tabName){
+  const rows=await fetchTab(tabName);
+  if(rows.length<=1){return}
+  document.getElementById('infoModalTitle').textContent=tabName;
+  let html='';
+  for(let i=1;i<rows.length;i++){
+    const r=rows[i];
+    const title=(r[0]||'').trim();
+    const body=(r[1]||'').trim();
+    if(!title&&!body)continue;
+    html+=`<div class="info-item">${title?`<div class="info-item-title">${esc(title)}</div>`:''}${body?`<div class="info-item-body">${esc(body)}</div>`:''}</div>`;
+  }
+  document.getElementById('infoModalBody').innerHTML=html||'<div class="empty-state">No content</div>';
+  document.getElementById('infoModal').classList.add('open');
+}
+
 async function init(){
   // If no Sheet ID configured, show setup screen
   if(!SHEET_ID){
@@ -1725,6 +1782,11 @@ async function init(){
   document.getElementById('siteName').textContent=tournamentName;
   document.getElementById('siteFooter').innerHTML=esc(tournamentName)+' &middot; Live Leaderboard';
   document.getElementById('recordsSubtitle').textContent='Across all '+tournamentName+' tournaments';
+
+  // Info tabs from column C
+  infoTabs=[];
+  for(let i=1;i<configRows.length;i++){const v=(configRows[i][2]||'').trim();if(v)infoTabs.push(v)}
+  renderInfoTabButtons();
 
   // Load global Courses tab
   const coursesRaw=await fetchTab('Courses');
