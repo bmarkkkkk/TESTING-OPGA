@@ -546,6 +546,8 @@
     /* Footer admin link */
     .footer-admin-link { display:inline-block; font-size:0.62rem; color:var(--text-muted); cursor:pointer; margin-top:8px; padding:3px 8px; border-radius:4px; transition:all 0.2s; opacity:0.5; letter-spacing:0.06em; }
     .footer-admin-link:hover { opacity:1; color:var(--text-secondary); background:rgba(245,240,232,0.04); }
+    .admin-header-btn { display:inline-block; font-size:0.6rem; font-weight:500; color:var(--text-muted); cursor:pointer; letter-spacing:0.03em; padding:3px 10px; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(245,240,232,0.03); transition:all var(--transition); opacity:0.6; }
+    .admin-header-btn:hover { background:rgba(245,240,232,0.07); color:var(--text-secondary); opacity:1; }
 
     /* Saving indicator */
     @keyframes savePop { 0%{transform:scale(0.8);opacity:0} 60%{transform:scale(1.1)} 100%{transform:scale(1);opacity:1} }
@@ -602,6 +604,7 @@
       <h1 id="siteName">OPGA Invitational</h1>
       <div class="header-sub" id="lastUpdate">Connecting…</div>
       <div class="records-link-wrap" id="recordsLinkWrap" style="display:none"><span class="records-link" id="recordsLink">All-Time Records <span style="color:var(--gold)">→</span></span></div>
+      <div style="text-align:center;margin-top:8px"><span class="admin-header-btn" id="adminHeaderBtn">Admin</span></div>
     </header>
 
     <div class="controls" id="yearControls" style="display:none">
@@ -768,9 +771,9 @@
         <button class="np-btn" data-n="7">7</button>
         <button class="np-btn" data-n="8">8</button>
         <button class="np-btn" data-n="9">9</button>
-        <button class="np-btn np-del" id="pinDel">⌫</button>
-        <button class="np-btn" data-n="0">0</button>
         <button class="np-btn np-empty"></button>
+        <button class="np-btn" data-n="0">0</button>
+        <button class="np-btn np-del" id="pinDel">⌫</button>
       </div>
       <div class="pin-error-msg" id="pinError"></div>
     </div>
@@ -811,11 +814,11 @@
         <button class="admin-close-btn" id="adminClose">← Back to Leaderboard</button>
       </div>
       <div class="admin-tabs" id="adminTabs">
-        <button class="admin-tab active" data-tab="config">⚙ Config</button>
-        <button class="admin-tab" data-tab="courses">🏌 Courses</button>
-        <button class="admin-tab" data-tab="rounds">📅 Rounds</button>
-        <button class="admin-tab" data-tab="players">👥 Players</button>
-        <button class="admin-tab" data-tab="scores">📊 Scores</button>
+        <button class="admin-tab active" data-tab="config">Config</button>
+        <button class="admin-tab" data-tab="courses">Courses</button>
+        <button class="admin-tab" data-tab="rounds">Rounds</button>
+        <button class="admin-tab" data-tab="players">Players</button>
+        <button class="admin-tab" data-tab="scores">Scores</button>
       </div>
       <div class="admin-content" id="adminContent"></div>
     </div>
@@ -2067,7 +2070,7 @@ function openPinModal(mode) {
   pinDigits = [];
   updatePinDots();
   document.getElementById('pinError').textContent = '';
-  document.getElementById('pinTitle').textContent = mode === 'scorer' ? '⛳ Score Entry' : '🔐 Admin Access';
+  document.getElementById('pinTitle').textContent = mode === 'scorer' ? 'Score Entry' : 'Admin Access';
   document.getElementById('pinSub').textContent = mode === 'scorer' ? 'Enter scorer PIN to continue' : 'Enter admin PIN to continue';
   document.getElementById('pinModal').classList.add('open');
 }
@@ -2136,14 +2139,8 @@ document.getElementById('scoreEntryFab').addEventListener('click', () => openPin
 
 // Footer admin link (injected after DOM ready)
 function setupAdminFooterLink() {
-  const footer = document.getElementById('siteFooter');
-  if (!footer) return;
-  // Don't add twice
-  if (footer.querySelector('.footer-admin-link')) return;
-  const link = document.createElement('div');
-  link.innerHTML = '<span class="footer-admin-link" id="adminFooterLink">Admin</span>';
-  footer.appendChild(link.firstChild);
-  document.getElementById('adminFooterLink').addEventListener('click', () => openPinModal('admin'));
+  const btn = document.getElementById('adminHeaderBtn');
+  if (btn) btn.addEventListener('click', () => openPinModal('admin'));
 }
 
 /* ═══════════════════════════════════════════════════════
