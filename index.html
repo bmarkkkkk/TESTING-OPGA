@@ -1324,7 +1324,7 @@ function renderChart(){
   const teamMap={};for(const p of players){if(!p.team)continue;if(!teamMap[p.team])teamMap[p.team]=[];teamMap[p.team].push(p)}
   const teamNames=Object.keys(teamMap);if(teamNames.length<2)return;
   const cps=[];for(let rn=1;rn<=totalRounds;rn++){cps.push({rn,half:'front',label:`R${rn} F9`});cps.push({rn,half:'back',label:`R${rn} B9`})}
-  const labels=[],datasets={};teamNames.forEach(t=>{datasets[t]=[]});
+  const labels=['E'],datasets={};teamNames.forEach(t=>{datasets[t]=[0]});
   for(const cp of cps){
     let ok=true;const scores={};
     for(const tName of teamNames){
