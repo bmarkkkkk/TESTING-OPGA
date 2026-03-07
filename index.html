@@ -2095,6 +2095,7 @@ async function init(){
   setInterval(load,POLL_SECONDS*1000);
   showScoreFAB();
   setupAdminHeaderBtn();
+  if(gAuthToken){openAdminPanel();showAdminToast('Signed in with Google')}
 }
 init();
 
@@ -2165,7 +2166,7 @@ async function saveAdminScores(){await saveAllPlayers();showAdminToast('Scores s
 let googleClientId='181776945321-257almdmhts5sbgnj3a3q6p8bcn2dvat.apps.googleusercontent.com';
 const GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets';
 function startGoogleAuth(){const params=new URLSearchParams({client_id:googleClientId,redirect_uri:window.location.origin+window.location.pathname,response_type:'token',scope:GOOGLE_SCOPE,include_granted_scopes:'true',state:'admin_auth'});window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString()}
-function handleOAuthCallback(){const hash=window.location.hash;if(!hash||!hash.includes('access_token'))return;const params=new URLSearchParams(hash.slice(1));const token=params.get('access_token');const state=params.get('state');if(token&&state==='admin_auth'){gAuthToken=token;history.replaceState(null,'',window.location.pathname+window.location.search);openAdminPanel();showAdminToast('Signed in with Google')}}
+function handleOAuthCallback(){const hash=window.location.hash;if(!hash||!hash.includes('access_token'))return;const params=new URLSearchParams(hash.slice(1));const token=params.get('access_token');const state=params.get('state');if(token&&state==='admin_auth'){gAuthToken=token;history.replaceState(null,'',window.location.pathname+window.location.search)}}
 handleOAuthCallback();
   </script>
 </body>
