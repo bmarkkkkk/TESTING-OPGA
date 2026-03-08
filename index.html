@@ -1854,7 +1854,7 @@ function renderIndivRecords(){
         const res=recCalcRound(p,rn,yd.courses,yd.roundMap);if(!res||res.thru<18)continue;
         if(res.netToPar<bestNetRound.val){bestNetRound={val:res.netToPar,details:[esc(p.name)+' · R'+rn+' · '+y]}}else if(res.netToPar===bestNetRound.val){bestNetRound.details.push(esc(p.name)+' · R'+rn+' · '+y)}
         const grossToPar=res.gross-recGetPar(rn,yd.courses,yd.roundMap);
-        if(grossToPar<bestGrossRound.val){bestGrossRound={val:grossToPar,details:[{text:esc(p.name)+' · R'+rn+' · '+y,gross:res.gross}]}}else if(grossToPar===bestGrossRound.val){bestGrossRound.details.push({text:esc(p.name)+' · R'+rn+' · '+y,gross:res.gross})}
+        if(grossToPar<bestGrossRound.val){bestGrossRound={val:grossToPar,details:[{text:esc(p.name)+' · R'+rn+' · '+y,gross:res.gross,ntp:res.netToPar}]}}else if(grossToPar===bestGrossRound.val){bestGrossRound.details.push({text:esc(p.name)+' · R'+rn+' · '+y,gross:res.gross,ntp:res.netToPar})}
       }
     }
     // Championship counts (only for complete years)
@@ -1886,10 +1886,10 @@ function renderIndivRecords(){
   if(bestGrossRound.details.length){
     if(bestGrossRound.details.length===1){
       const d=bestGrossRound.details[0];
-      rows.push({icon:'💪',label:'Best Gross Round',value:String(d.gross),detail:d.text+' ('+fmtPar(bestGrossRound.val)+')'});
+      rows.push({icon:'💪',label:'Best Gross Round',value:String(d.gross),detail:d.text+' ('+fmtPar(d.ntp)+' net)'});
     }else{
-      const detail=bestGrossRound.details.map(d=>d.text+' ('+d.gross+')').join('<br>');
-      rows.push({icon:'💪',label:'Best Gross Round',value:fmtPar(bestGrossRound.val),detail});
+      const detail=bestGrossRound.details.map(d=>d.text+' ('+d.gross+' / '+fmtPar(d.ntp)+' net)').join('<br>');
+      rows.push({icon:'💪',label:'Best Gross Round',value:String(bestGrossRound.details[0].gross),detail});
     }
   }
   // Most team championships
