@@ -1339,6 +1339,7 @@ function renderChart(){
       if(!ok)break;scores[tName]=tp;
     }
     if(!ok)break;
+    if(!labels.length){labels.push('E');teamNames.forEach(t=>{datasets[t].push(0)})}
     labels.push(cp.label);
     for(const t of teamNames){const prev=datasets[t].length?datasets[t][datasets[t].length-1]:0;datasets[t].push(prev+scores[t])}
   }
