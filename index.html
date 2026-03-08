@@ -1228,29 +1228,30 @@ function calcLastNine(members){
 function renderIndividual(complete){
   const isTourn=currentView==='tournament';
   const isFinal=complete&&isTourn;
-  // Official ranking sort (always by netToPar)
-  const data=players.map(p=>{const v=calcPlayerView(p,currentView);return{player:p,...v}}).filter(d=>d.thru>0).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
-  const arrows=computeArrows(data);
-  // Assign official rank with ties
-  data.forEach((d,i)=>{
-    if(i>0&&d.netToPar===data[i-1].netToPar&&d.net===data[i-1].net){d.rank=data[i-1].rank}else{d.rank=i+1}
+  // Split into scored and unscored
+  const allData=players.map(p=>{const v=calcPlayerView(p,currentView);return{player:p,...v}});
+  const scored=allData.filter(d=>d.thru>0).sort((a,b)=>a.netToPar-b.netToPar||a.net-b.net);
+  const unscored=allData.filter(d=>d.thru===0);
+  const arrows=computeArrows(scored);
+  // Assign official rank with ties (scored only)
+  scored.forEach((d,i)=>{
+    if(i>0&&d.netToPar===scored[i-1].netToPar&&d.net===scored[i-1].net){d.rank=scored[i-1].rank}else{d.rank=i+1}
   });
-  const rankCounts={};data.forEach(d=>{rankCounts[d.rank]=(rankCounts[d.rank]||0)+1});
-  data.forEach(d=>{d.tied=rankCounts[d.rank]>1});
+  const rankCounts={};scored.forEach(d=>{rankCounts[d.rank]=(rankCounts[d.rank]||0)+1});
+  scored.forEach(d=>{d.tied=rankCounts[d.rank]>1});
   // Re-sort by selected column for display
   if(currentSort!=='netToPar'){
     const key=currentSort;
-    data.sort((a,b)=>a[key]-b[key]);
+    scored.sort((a,b)=>a[key]-b[key]);
   }
   // Update header active state
   document.querySelectorAll('#lbHeader .sortable').forEach(s=>{s.classList.toggle('sort-active',s.dataset.sort===currentSort)});
   const body=document.getElementById('lbBody');
-  if(!data.length){body.innerHTML='<div class="empty-state">No scores yet</div>';return}
-  body.innerHTML=data.map((d,i)=>{
+  if(!scored.length&&!unscored.length){body.innerHTML='<div class="empty-state">No scores yet</div>';return}
+  let html=scored.map((d,i)=>{
     const pos=d.rank,arrowHtml=arrows[d.player.name]||'';
     let dotsHtml='';
     if(currentView==='tournament'){
-      // Check if all rounds complete for this player
       const rScores=[];
       let allDone=true;
       for(let rn=1;rn<=totalRounds;rn++){
@@ -1261,7 +1262,6 @@ function renderIndividual(complete){
       if(allDone){
         const sorted=[...rScores].sort((a,b)=>a.ntp-b.ntp);
         const rankColors=['rank-best','rank-good','rank-poor','rank-worst'];
-        // Assign rank to each, handling ties
         const colorMap={};
         sorted.forEach((s,i)=>{
           if(i>0&&s.ntp===sorted[i-1].ntp){colorMap[s.rn]=colorMap[sorted[i-1].rn]}
@@ -1278,6 +1278,14 @@ function renderIndividual(complete){
       <span class="lb-val">${d.net}</span><span class="lb-val net-par ${parClass(d.netToPar)}">${fmtPar(d.netToPar)}</span><span class="lb-val">${d.gross}</span><span class="lb-thru">${d.thru}</span>
     </div>`;
   }).join('');
+  if(unscored.length){
+    html+=unscored.map(d=>`<div class="lb-row" data-player="${esc(d.player.name)}" style="opacity:0.5">
+      <span class="lb-pos">—</span>
+      <div class="lb-name-cell"><div class="lb-player-name">${esc(d.player.name)}</div>${teamMode?`<div class="lb-team-tag">${esc(d.player.team)}</div>`:''}</div>
+      <span class="lb-val">—</span><span class="lb-val">—</span><span class="lb-val">—</span><span class="lb-thru">0</span>
+    </div>`).join('');
+  }
+  body.innerHTML=html;
   // Attach click handlers
   body.querySelectorAll('.lb-row[data-player]').forEach(row=>{
     row.addEventListener('click',()=>openPlayerModal(row.dataset.player));
