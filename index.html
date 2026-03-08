@@ -1953,7 +1953,7 @@ function renderPlayerHistory(){
     }
   }
   // Filter out players with no completed rounds, then sort
-  const sorted=Object.entries(playerStats).filter(([,ps])=>ps.completedRounds>0).sort((a,b)=>b[1].wins.length-a[1].wins.length||b[1].tournaments-a[1].tournaments||b[1].top3.length-a[1].top3.length);
+  const sorted=Object.entries(playerStats).filter(([,ps])=>ps.completedRounds>0).sort((a,b)=>b[1].wins.length-a[1].wins.length||b[1].tournaments-a[1].tournaments||b[1].top3.length-a[1].top3.length||a[1].bestTournNtp-b[1].bestTournNtp);
   if(!sorted.length){card.innerHTML='<div class="empty-state">No player data yet</div>';return}
   card.innerHTML=sorted.map(([name,ps])=>{
     const avgNtp=ps.completedRounds>0?(ps.totalNtp/ps.completedRounds):0;
