@@ -536,7 +536,7 @@
     .admin-score-rtab.active { background:var(--green-500); color:var(--cream); }
     .admin-score-rtab.inactive { background:transparent; color:var(--text-muted); }
     .admin-score-input { background:rgba(245,240,232,0.06); border:1px solid rgba(245,240,232,0.1); border-radius:6px; color:var(--cream); font-size:0.95rem; font-weight:700; padding:6px 4px; width:58px; text-align:center; outline:none; font-family:'Outfit',sans-serif; transition:all 0.2s; -webkit-appearance:none; }
-    .admin-score-input:focus { border-color:var(--gold); background:rgba(201,168,76,0.08); }
+    .admin-score-input:focus { border-color:var(--gold); background:rgba(0,103,71,0.12); }
     .admin-score-input.has-val { border-color:rgba(62,185,127,0.3); background:rgba(62,185,127,0.06); }
     .admin-progress-bar { height:4px; background:var(--surface-2); border-radius:2px; overflow:hidden; flex:1; }
     .admin-progress-fill { height:100%; background:var(--green-300); border-radius:2px; transition:width 0.4s ease; }
@@ -1196,7 +1196,7 @@ function renderTeams(complete){
   if(teamData.length>=2){
     const spread=Math.abs(teamData[0].netToPar-teamData[1].netToPar);
     const pct=spread===0?50:Math.min(85,50+spread*3);
-    const barColor=isFinal?(spread===0?'var(--text-muted)':'var(--gold)'):(spread===0?'var(--text-muted)':'var(--green-300)');
+    const barColor=isFinal?(spread===0?'var(--text-muted)':'var(--green-300)'):(spread===0?'var(--text-muted)':'var(--green-300)');
     const verb=isFinal?(spread===0?'Teams tied':'wins by'):(spread===0?'Teams are tied':'leads by');
     const label=spread===0?verb:(esc(teamData[0].name)+' '+verb+' '+spread+' stroke'+(spread!==1?'s':''));
     html+=`<div class="diff-bar-wrap"><div class="diff-bar-label">${label}</div><div class="diff-bar"><div class="diff-bar-fill" style="width:${pct}%;background:${barColor}"></div></div></div>`;
@@ -2114,8 +2114,9 @@ init();
 /* ═══ PIN SYSTEM ═══ */
 let pinDigits=[];let pinMode='';let scorerPIN='1234';let adminPIN='0000';
 function loadPINsFromConfig(cr){if(cr.length>1){const r=cr[1];if(r[3]&&r[3].trim())scorerPIN=r[3].trim();if(r[4]&&r[4].trim())adminPIN=r[4].trim()}}
-function openPinModal(m){pinMode=m;pinDigits=[];updatePinDots();document.getElementById('pinError').textContent='';document.getElementById('pinTitle').textContent=m==='scorer'?'Score Entry':'Admin Access';document.getElementById('pinSub').textContent=m==='scorer'?'Enter scorer PIN':'Enter admin PIN';document.getElementById('pinModal').classList.add('open');document.querySelector('#pinModal .pin-sheet').scrollTop=0}
-function closePinModal(){document.getElementById('pinModal').classList.remove('open');pinDigits=[];updatePinDots()}
+function openPinModal(m){pinMode=m;pinDigits=[];updatePinDots();document.getElementById('pinError').textContent='';document.getElementById('pinTitle').textContent=m==='scorer'?'Score Entry':'Admin Access';document.getElementById('pinSub').textContent=m==='scorer'?'Enter scorer PIN':'Enter admin PIN';document.getElementById('pinModal').classList.add('open');document.querySelector('#pinModal .pin-sheet').scrollTop=0;document.addEventListener('keydown',pinKeyHandler)}
+function closePinModal(){document.getElementById('pinModal').classList.remove('open');pinDigits=[];updatePinDots();document.removeEventListener('keydown',pinKeyHandler)}
+function pinKeyHandler(e){if(!document.getElementById('pinModal').classList.contains('open'))return;if(e.key>='0'&&e.key<='9'){e.preventDefault();if(pinDigits.length>=4)return;pinDigits.push(e.key);updatePinDots();if(pinDigits.length===4){const entered=pinDigits.join('');const correct=pinMode==='scorer'?scorerPIN:adminPIN;setTimeout(()=>{if(entered===correct)pinSuccess();else pinError()},120)}}else if(e.key==='Backspace'){e.preventDefault();pinDigits=pinDigits.slice(0,-1);updatePinDots()}else if(e.key==='Escape'){e.preventDefault();closePinModal()}}
 function updatePinDots(){document.querySelectorAll('.pin-dot-el').forEach((d,i)=>{d.classList.remove('filled','error');if(i<pinDigits.length)d.classList.add('filled')})}
 function pinError(){const row=document.getElementById('pinDots');document.querySelectorAll('.pin-dot-el').forEach(d=>{d.classList.remove('filled');d.classList.add('error')});row.classList.add('shake');document.getElementById('pinError').textContent='Incorrect PIN';setTimeout(()=>{row.classList.remove('shake');document.querySelectorAll('.pin-dot-el').forEach(d=>d.classList.remove('error'));pinDigits=[];updatePinDots();document.getElementById('pinError').textContent=''},700)}
 function pinSuccess(){closePinModal();if(pinMode==='scorer')openScorerModal();else if(pinMode==='admin')openAdminPanel()}
