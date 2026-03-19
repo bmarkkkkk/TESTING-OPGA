@@ -142,7 +142,7 @@
 
     /* Team Standings */
     .team-row { display:grid; grid-template-columns:36px 1fr auto auto; align-items:center; gap:12px; padding:14px 16px; transition:background var(--transition); cursor:pointer; }
-    .team-row:hover { background:var(--surface-2); }
+    @media(hover:hover){.team-row:hover { background:var(--surface-2); }}
     .team-row:not(:last-child) { border-bottom:1px solid var(--border); }
     .team-rank { font-weight:700; font-size:1rem; text-align:center; }
     .team-rank.rank-1 { color:var(--gold); }
@@ -207,7 +207,7 @@
     .hr-score-label { font-size:0.5rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:3px; }
     .hr-score-val { font-weight:700; font-size:0.95rem; color:var(--text-primary); }
     .history-card { cursor:pointer; transition:background 0.15s; }
-    .history-card:hover { background:var(--surface-2); }
+    @media(hover:hover){.history-card:hover { background:var(--surface-2); }}
     /* Individual Leaderboard */
     .lb-header { display:grid; grid-template-columns:32px 1fr 54px 62px 54px 40px; gap:4px; padding:10px 14px; font-size:0.62rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); background:var(--surface-2); border-bottom:1px solid var(--border); }
     .lb-header span { text-align:center; }
@@ -216,7 +216,7 @@
     .lb-header span.sortable:hover { color:var(--text-secondary); }
     .lb-header span.sortable.sort-active { color:var(--gold); }
     .lb-row { display:grid; grid-template-columns:32px 1fr 54px 62px 54px 40px; gap:4px; padding:12px 14px; align-items:center; cursor:pointer; transition:background var(--transition); }
-    .lb-row:hover { background:var(--surface-2); }
+    @media(hover:hover){.lb-row:hover { background:var(--surface-2); }}
     .lb-row:not(:last-child) { border-bottom:1px solid var(--border); }
     .lb-row.is-leader { background:rgba(201,168,76,0.04); }
     .lb-pos { font-weight:700; font-size:0.85rem; color:var(--text-secondary); text-align:center; }
@@ -337,7 +337,7 @@
     .tm-subtitle { text-align:center; font-size:0.75rem; color:var(--text-muted); margin-top:2px; margin-bottom:16px; }
     .tm-summary { display:grid; grid-template-columns:repeat(3,1fr); gap:8px; margin-bottom:18px; }
     .tm-member { background:var(--surface-2); border:1px solid var(--border); border-radius:var(--radius); padding:10px 14px 14px; margin-bottom:10px; cursor:pointer; transition:background var(--transition); position:relative; }
-    .tm-member:hover { background:var(--surface-3); }
+    @media(hover:hover){.tm-member:hover { background:var(--surface-3); }}
     .tm-member:last-child { margin-bottom:0; }
     .tm-member-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:8px; }
     .tm-member-name { font-weight:600; font-size:0.92rem; color:var(--text-primary); }
@@ -378,7 +378,7 @@
     .records-subtitle { font-size:0.75rem; color:var(--text-muted); }
     .champions-grid { display:grid; grid-template-columns:1fr 1fr; gap:10px; }
     .champ-card { background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius); padding:16px; position:relative; overflow:hidden; cursor:pointer; transition:background var(--transition); }
-    .champ-card:hover { background:var(--surface-2); }
+    @media(hover:hover){.champ-card:hover { background:var(--surface-2); }}
     @media(hover:none){ .champ-card:hover,.team-row:hover,.lb-row:hover { background:transparent; } .tm-member:hover { background:var(--surface-2); } }
     .champ-card::before { content:''; position:absolute; top:0; left:0; right:0; height:3px; background:linear-gradient(90deg, transparent, rgba(201,168,76,0.5), transparent); }
     .champ-year { font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.3rem; color:var(--gold); margin-bottom:8px; }
@@ -446,7 +446,7 @@
     /* Info Tab Buttons */
     .info-tabs-wrap { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; margin-bottom:24px; }
     .info-tab-btn { display:inline-block; font-size:0.82rem; font-weight:500; color:var(--text-secondary); cursor:pointer; letter-spacing:0.03em; padding:7px 18px; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(245,240,232,0.04); transition:all var(--transition); }
-    .info-tab-btn:hover { background:rgba(245,240,232,0.08); color:var(--text-primary); }
+    @media(hover:hover){.info-tab-btn:hover { background:rgba(245,240,232,0.08); color:var(--text-primary); }}
 
     /* Info Modal Content */
     .info-modal-title { font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.5rem; color:var(--cream); text-align:center; margin-bottom:16px; }
@@ -474,7 +474,7 @@
 
     /* ═══ SCORE ENTRY & ADMIN STYLES ═══ */
     .score-entry-fab { position:fixed; bottom:24px; right:20px; z-index:50; background:var(--green-500); color:var(--cream); border:none; border-radius:50px; padding:9px 16px; font-family:'Outfit',sans-serif; font-size:0.75rem; font-weight:700; letter-spacing:0.04em; cursor:pointer; box-shadow:0 4px 20px rgba(0,103,71,0.5); transition:all 0.2s; display:flex; align-items:center; gap:6px; }
-    .score-entry-fab:hover { background:var(--green-400); transform:translateY(-2px); }
+    @media(hover:hover){.score-entry-fab:hover { background:var(--green-400); transform:translateY(-2px); }}
     .score-entry-fab .fab-dot { width:6px; height:6px; background:var(--green-300); border-radius:50%; animation:pulse 2s ease-in-out infinite; }
     .pin-modal-overlay { display:none; position:fixed; inset:0; background:rgba(0,0,0,0.75); z-index:200; justify-content:center; align-items:flex-end; backdrop-filter:blur(6px); }
     .pin-modal-overlay.open { display:flex; }
@@ -1487,7 +1487,7 @@ function renderChart(){
 }
 
 /* ═══ HISTORY ═══ */
-function openHistoryRoundModal(rn){const modal=document.getElementById('historyRoundModal');const content=document.getElementById('historyRoundContent');const cn=getCourseName(rn);const cp=getCoursePar(rn);const rp=players.map(p=>{const res=calcPlayerRound(p,rn);if(!res||res.thru<=0)return null;return{name:p.name,team:p.team,hi:p.hi,frontGross:res.frontGross,backGross:res.backGross,gross:res.gross,net:res.net,netToPar:res.netToPar,thru:res.thru,ch:res.ch}}).filter(Boolean);const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);if(!byNet.length){content.innerHTML=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}<div style="padding:20px;text-align:center;color:var(--text-muted)">No completed scores yet</div>`;modal.classList.add('open');return}const bestNtp=byNet[0].netToPar;const tied1st=byNet.filter(p=>p.netToPar===bestNtp);const rest=byNet.filter(p=>p.netToPar!==bestNtp);const secondNtp=rest.length?rest[0].netToPar:null;const tied2nd=secondNtp!==null?rest.filter(p=>p.netToPar===secondNtp):[];const showPlayers=[...tied1st.map(p=>({...p,rank:tied1st.length>1?'T1':'1st'})),...tied2nd.map(p=>({...p,rank:tied2nd.length>1?'T2':'2nd'}))];let h=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}`;for(const p of showPlayers){const ntpColor=p.netToPar<0?'var(--green-300)':p.netToPar>0?'var(--red)':'var(--cream)';h+=`<div class="hr-player-card"><div class="hr-player-head"><div><div class="hr-player-name">${esc(p.name)}</div>${p.team?`<div class="hr-player-team">${esc(p.team)}</div>`:''}</div><div class="hr-player-rank">${p.rank}</div></div><div class="hr-score-grid"><div class="hr-score-box"><div class="hr-score-label">Front 9</div><div class="hr-score-val">${p.frontGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Back 9</div><div class="hr-score-val">${p.backGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Total Net</div><div class="hr-score-val">${p.net}</div></div><div class="hr-score-box"><div class="hr-score-label">Net to Par</div><div class="hr-score-val" style="color:${ntpColor}">${p.netToPar<0?p.netToPar:p.netToPar>0?'+'+p.netToPar:'E'}</div></div></div></div>`}content.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
+function openHistoryRoundModal(rn){const modal=document.getElementById('historyRoundModal');const content=document.getElementById('historyRoundContent');const cn=getCourseName(rn);const cp=getCoursePar(rn);const rp=players.map(p=>{const res=calcPlayerRound(p,rn);if(!res||res.thru<=0)return null;return{name:p.name,team:p.team,hi:p.hi,frontGross:res.frontGross,backGross:res.backGross,gross:res.gross,net:res.net,netToPar:res.netToPar,thru:res.thru,ch:res.ch}}).filter(Boolean);const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);if(!byNet.length){content.innerHTML=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}<div style="padding:20px;text-align:center;color:var(--text-muted)">No completed scores yet</div>`;modal.classList.add('open');return}const bestNtp=byNet[0].netToPar;const tied1st=byNet.filter(p=>p.netToPar===bestNtp);const rest=byNet.filter(p=>p.netToPar!==bestNtp);const secondNtp=rest.length?rest[0].netToPar:null;const tied2nd=secondNtp!==null?rest.filter(p=>p.netToPar===secondNtp):[];const showPlayers=[...tied1st.map(p=>({...p,rank:tied1st.length>1?'T1':'1st'})),...tied2nd.map(p=>({...p,rank:tied2nd.length>1?'T2':'2nd'}))];let h=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}`;for(const p of showPlayers){const ntpColor=p.netToPar<0?'var(--green-300)':p.netToPar>0?'var(--red)':'var(--cream)';h+=`<div class="hr-player-card"><div class="hr-player-head"><div><div class="hr-player-name">${esc(p.name)}</div>${p.team?`<div class="hr-player-team">${esc(p.team)}</div>`:''}</div><div class="hr-player-rank">${p.rank}</div></div><div class="hr-score-grid"><div class="hr-score-box"><div class="hr-score-label">Front 9</div><div class="hr-score-val">${p.frontGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Back 9</div><div class="hr-score-val">${p.backGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Total Gross</div><div class="hr-score-val">${p.gross}</div></div><div class="hr-score-box"><div class="hr-score-label">Net to Par</div><div class="hr-score-val" style="color:${ntpColor}">${p.netToPar<0?p.netToPar:p.netToPar>0?'+'+p.netToPar:'E'}</div></div></div></div>`}content.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
 
 function renderHistory(){
   const grid=document.getElementById('historyGrid');let html='';
