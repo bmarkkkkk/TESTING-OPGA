@@ -1474,7 +1474,7 @@ function renderChart(){
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{labels:{color:'#a8b5a0',font:{family:'Outfit',size:12},boxWidth:12,boxHeight:12}},
-        tooltip:{backgroundColor:'rgba(15,46,29,0.95)',borderColor:'rgba(245,240,232,0.15)',borderWidth:1,titleFont:{family:'Outfit',size:13},bodyFont:{family:'Outfit',size:12},titleColor:'#f5f0e8',bodyColor:'#a8b5a0',padding:10,cornerRadius:8,callbacks:{label:function(ctx){const v=ctx.parsed.y;return` ${ctx.dataset.label}: ${v===0?'E':(v>0?'+'+v:v)}`}}}
+        tooltip:{backgroundColor:'rgba(15,46,29,0.95)',borderColor:'rgba(245,240,232,0.15)',borderWidth:1,titleFont:{family:'Outfit',size:13},bodyFont:{family:'Outfit',size:12},titleColor:'#f5f0e8',bodyColor:'#a8b5a0',padding:10,cornerRadius:8,itemSort:function(a,b){return a.parsed.y-b.parsed.y},callbacks:{label:function(ctx){const v=ctx.parsed.y;return` ${ctx.dataset.label}: ${v===0?'E':(v>0?'+'+v:v)}`}}}
       },
       scales:{
         x:{ticks:{color:'#6b7a64',font:{family:'Outfit',size:11}},grid:{color:'rgba(245,240,232,0.05)'}},
@@ -1521,7 +1521,7 @@ function renderIndividualChart(){
       interaction:{mode:'index',intersect:false},
       plugins:{
         legend:{labels:{color:'#a8b5a0',font:{family:'Outfit',size:11},boxWidth:10,boxHeight:10}},
-        tooltip:{backgroundColor:'rgba(15,46,29,0.95)',borderColor:'rgba(245,240,232,0.15)',borderWidth:1,titleFont:{family:'Outfit',size:13},bodyFont:{family:'Outfit',size:12},titleColor:'#f5f0e8',bodyColor:'#a8b5a0',padding:10,cornerRadius:8,callbacks:{label:function(ctx){const v=ctx.parsed.y;return` ${ctx.dataset.label}: ${v===0?'E':(v>0?'+'+v:v)}`}}}
+        tooltip:{backgroundColor:'rgba(15,46,29,0.95)',borderColor:'rgba(245,240,232,0.15)',borderWidth:1,titleFont:{family:'Outfit',size:13},bodyFont:{family:'Outfit',size:12},titleColor:'#f5f0e8',bodyColor:'#a8b5a0',padding:10,cornerRadius:8,itemSort:function(a,b){return a.parsed.y-b.parsed.y},callbacks:{label:function(ctx){const v=ctx.parsed.y;return` ${ctx.dataset.label}: ${v===0?'E':(v>0?'+'+v:v)}`}}}
       },
       scales:{
         x:{ticks:{color:'#6b7a64',font:{family:'Outfit',size:11}},grid:{color:'rgba(245,240,232,0.05)'}},
