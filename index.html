@@ -24,10 +24,11 @@
       --gold-light: #dfc373;
       --red: #d44;
       --red-dim: rgba(221,68,68,0.15);
-      --over-par: #1a1a1a;
-      --over-par-dim: rgba(26,26,26,0.25);
+      --over-par: #f5f0d0;
+      --over-par-dim: rgba(245,240,208,0.12);
       --under-par: #e74c3c;
       --under-par-dim: rgba(231,76,60,0.15);
+      --even-par: #6bb3d9;
       --blue: #4a90d9;
       --blue-dim: rgba(74,144,217,0.15);
       --orange: #e8943a;
@@ -157,11 +158,11 @@
     .team-score { font-weight:700; font-size:1.3rem; text-align:right; min-width:48px; }
     .team-score.under { color:var(--under-par); }
     .team-score.over { color:var(--over-par); }
-    .team-score.even { color:var(--text-primary); }
+    .team-score.even { color:var(--even-par); }
     .last-nine-badge { display:inline-block; font-size:0.62rem; font-weight:600; letter-spacing:0.05em; padding:2px 8px; border-radius:10px; white-space:nowrap; }
     .last-nine-badge.under { background:var(--under-par-dim); color:var(--under-par); }
     .last-nine-badge.over { background:var(--over-par-dim); color:var(--over-par); }
-    .last-nine-badge.even { background:rgba(245,240,232,0.08); color:var(--text-secondary); }
+    .last-nine-badge.even { background:rgba(107,179,217,0.12); color:var(--even-par); }
     .diff-bar-wrap { padding:10px 16px 14px; border-top:1px solid var(--border); }
     .diff-bar-label { font-size:0.78rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-secondary); margin-bottom:6px; text-align:center; }
     .diff-bar { height:6px; border-radius:3px; background:var(--surface-2); overflow:hidden; }
@@ -194,7 +195,7 @@
     .sb-sc { font-weight:600; min-width:22px; }
     .sb-un { color:var(--under-par); }
     .sb-ov { color:var(--over-par); }
-    .sb-ev { color:#f5f0d0; }
+    .sb-ev { color:var(--even-par); }
     .sb-tc { font-weight:700; font-size:0.76rem; min-width:30px; border-left:1px solid var(--border); }
     .sb-thru { font-size:0.5rem; color:var(--text-muted); min-width:22px; border-left:1px solid rgba(245,240,232,0.05); }
     .sb-hint { text-align:center; font-size:0.52rem; color:var(--text-muted); margin-top:5px; font-style:italic; }
@@ -231,7 +232,7 @@
     .lb-val.net-par { font-weight:700; }
     .lb-val.net-par.under { color:var(--under-par); }
     .lb-val.net-par.over { color:var(--over-par); }
-    .lb-val.net-par.even { color:var(--text-primary); }
+    .lb-val.net-par.even { color:var(--even-par); }
     .lb-thru { text-align:center; font-size:0.78rem; color:var(--text-muted); }
     .arrow { display:inline-block; font-size:0.7rem; margin-left:4px; vertical-align:middle; }
     .arrow.up { color:var(--green-300); }
@@ -1549,7 +1550,7 @@ function renderIndividualChart(){
 }
 
 /* ═══ HISTORY ═══ */
-function openHistoryRoundModal(rn){const modal=document.getElementById('historyRoundModal');const content=document.getElementById('historyRoundContent');const cn=getCourseName(rn);const cp=getCoursePar(rn);const rp=players.map(p=>{const res=calcPlayerRound(p,rn);if(!res||res.thru<=0)return null;return{name:p.name,team:p.team,hi:p.hi,frontGross:res.frontGross,backGross:res.backGross,gross:res.gross,net:res.net,netToPar:res.netToPar,thru:res.thru,ch:res.ch}}).filter(Boolean);const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);if(!byNet.length){content.innerHTML=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}<div style="padding:20px;text-align:center;color:var(--text-muted)">No completed scores yet</div>`;modal.classList.add('open');return}const bestNtp=byNet[0].netToPar;const tied1st=byNet.filter(p=>p.netToPar===bestNtp);const rest=byNet.filter(p=>p.netToPar!==bestNtp);const secondNtp=rest.length?rest[0].netToPar:null;const tied2nd=secondNtp!==null?rest.filter(p=>p.netToPar===secondNtp):[];const showPlayers=[...tied1st.map(p=>({...p,rank:tied1st.length>1?'T1':'1st'})),...tied2nd.map(p=>({...p,rank:tied2nd.length>1?'T2':'2nd'}))];let h=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}`;for(const p of showPlayers){const ntpColor=p.netToPar<0?'var(--under-par)':p.netToPar>0?'var(--over-par)':'var(--cream)';h+=`<div class="hr-player-card"><div class="hr-player-head"><div><div class="hr-player-name">${esc(p.name)}</div>${p.team?`<div class="hr-player-team">${esc(p.team)}</div>`:''}</div><div class="hr-player-rank">${p.rank}</div></div><div class="hr-score-grid"><div class="hr-score-box"><div class="hr-score-label">Front 9</div><div class="hr-score-val">${p.frontGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Back 9</div><div class="hr-score-val">${p.backGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Total Gross</div><div class="hr-score-val">${p.gross}</div></div><div class="hr-score-box"><div class="hr-score-label">Net to Par</div><div class="hr-score-val" style="color:${ntpColor}">${p.netToPar<0?p.netToPar:p.netToPar>0?'+'+p.netToPar:'E'}</div></div></div></div>`}content.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
+function openHistoryRoundModal(rn){const modal=document.getElementById('historyRoundModal');const content=document.getElementById('historyRoundContent');const cn=getCourseName(rn);const cp=getCoursePar(rn);const rp=players.map(p=>{const res=calcPlayerRound(p,rn);if(!res||res.thru<=0)return null;return{name:p.name,team:p.team,hi:p.hi,frontGross:res.frontGross,backGross:res.backGross,gross:res.gross,net:res.net,netToPar:res.netToPar,thru:res.thru,ch:res.ch}}).filter(Boolean);const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);if(!byNet.length){content.innerHTML=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}<div style="padding:20px;text-align:center;color:var(--text-muted)">No completed scores yet</div>`;modal.classList.add('open');return}const bestNtp=byNet[0].netToPar;const tied1st=byNet.filter(p=>p.netToPar===bestNtp);const rest=byNet.filter(p=>p.netToPar!==bestNtp);const secondNtp=rest.length?rest[0].netToPar:null;const tied2nd=secondNtp!==null?rest.filter(p=>p.netToPar===secondNtp):[];const showPlayers=[...tied1st.map(p=>({...p,rank:tied1st.length>1?'T1':'1st'})),...tied2nd.map(p=>({...p,rank:tied2nd.length>1?'T2':'2nd'}))];let h=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}`;for(const p of showPlayers){const ntpColor=p.netToPar<0?'var(--under-par)':p.netToPar>0?'var(--over-par)':'var(--even-par)';h+=`<div class="hr-player-card"><div class="hr-player-head"><div><div class="hr-player-name">${esc(p.name)}</div>${p.team?`<div class="hr-player-team">${esc(p.team)}</div>`:''}</div><div class="hr-player-rank">${p.rank}</div></div><div class="hr-score-grid"><div class="hr-score-box"><div class="hr-score-label">Front 9</div><div class="hr-score-val">${p.frontGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Back 9</div><div class="hr-score-val">${p.backGross||'—'}</div></div><div class="hr-score-box"><div class="hr-score-label">Total Gross</div><div class="hr-score-val">${p.gross}</div></div><div class="hr-score-box"><div class="hr-score-label">Net to Par</div><div class="hr-score-val" style="color:${ntpColor}">${p.netToPar<0?p.netToPar:p.netToPar>0?'+'+p.netToPar:'E'}</div></div></div></div>`}content.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
 
 function renderHistory(){
   const grid=document.getElementById('historyGrid');let html='';
@@ -1646,7 +1647,7 @@ function openPlayerModal(name){
     const cName=getCourseName(rn);
     document.getElementById('pmRoundsTitle').innerHTML=`<span>Round ${rn} Detail (Gross / Net to Par)</span>${cName?'<span class="mrt-line"></span><span class="mrt-course">'+esc(cName)+'</span>':''}`;
     const res=calcPlayerRound(player,rn);
-    if(res){const ps=getCourseParSplit(rn);const fNtp=res.hasFront?(res.frontGross-Math.ceil(res.ch/2))-ps.front:null;const bNtp=res.hasBack?(res.backGross-Math.floor(res.ch/2))-ps.back:null;const fCol=fNtp===null?'':fNtp<0?'var(--under-par)':fNtp>0?'var(--over-par)':'var(--cream)';const bCol=bNtp===null?'':bNtp<0?'var(--under-par)':bNtp>0?'var(--over-par)':'var(--cream)';const fNtpStr=fNtp===null?'':fNtp<0?String(fNtp):fNtp>0?'+'+fNtp:'E';const bNtpStr=bNtp===null?'':bNtp<0?String(bNtp):bNtp>0?'+'+bNtp:'E';roundsHtml+=`<div class="modal-round-row"><span class="modal-round-label">Front Nine</span><span class="modal-round-val">${res.hasFront?res.frontGross+' / <span style="color:'+fCol+'">'+fNtpStr+'</span>':'—'}</span></div><div class="modal-round-row"><span class="modal-round-label">Back Nine</span><span class="modal-round-val">${res.hasBack?res.backGross+' / <span style="color:'+bCol+'">'+bNtpStr+'</span>':'—'}</span></div>`}
+    if(res){const ps=getCourseParSplit(rn);const fNtp=res.hasFront?(res.frontGross-Math.ceil(res.ch/2))-ps.front:null;const bNtp=res.hasBack?(res.backGross-Math.floor(res.ch/2))-ps.back:null;const fCol=fNtp===null?'':fNtp<0?'var(--under-par)':fNtp>0?'var(--over-par)':'var(--even-par)';const bCol=bNtp===null?'':bNtp<0?'var(--under-par)':bNtp>0?'var(--over-par)':'var(--even-par)';const fNtpStr=fNtp===null?'':fNtp<0?String(fNtp):fNtp>0?'+'+fNtp:'E';const bNtpStr=bNtp===null?'':bNtp<0?String(bNtp):bNtp>0?'+'+bNtp:'E';roundsHtml+=`<div class="modal-round-row"><span class="modal-round-label">Front Nine</span><span class="modal-round-val">${res.hasFront?res.frontGross+' / <span style="color:'+fCol+'">'+fNtpStr+'</span>':'—'}</span></div><div class="modal-round-row"><span class="modal-round-label">Back Nine</span><span class="modal-round-val">${res.hasBack?res.backGross+' / <span style="color:'+bCol+'">'+bNtpStr+'</span>':'—'}</span></div>`}
     document.getElementById('pmSummary').textContent=`Course Handicap: ${getCH(player.hi,rn)}`;
   }
   document.getElementById('pmRounds').innerHTML=roundsHtml;
