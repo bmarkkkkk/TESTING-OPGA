@@ -1468,7 +1468,7 @@ function renderChart(){
   if(chartInstance)chartInstance.destroy();
   chartInstance=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets:teamNames.map((t,i)=>({label:t,data:datasets[t],borderColor:colors[i%colors.length],backgroundColor:colors[i%colors.length]+'22',borderWidth:2.5,pointRadius:5,pointHoverRadius:7,pointBackgroundColor:colors[i%colors.length],tension:0.3,fill:false}))},
+    data:{labels,datasets:teamNames.map((t,i)=>({label:t,data:datasets[t],borderColor:colors[i%colors.length],backgroundColor:colors[i%colors.length]+'22',borderWidth:2.5,pointRadius:0,pointHoverRadius:5,pointBackgroundColor:colors[i%colors.length],tension:0.3,fill:false}))},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -1486,7 +1486,7 @@ function renderChart(){
     ctx.canvas._chartTapHandler=function(e){
       if(!chartInstance)return;
       const pts=chartInstance.getElementsAtEventForMode(e,'index',{intersect:false},false);
-      if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.update('none')}
+      if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.setActiveElements([]);chartInstance.update()}
     };
     ctx.canvas.addEventListener('click',ctx.canvas._chartTapHandler);
   }
@@ -1515,7 +1515,7 @@ function renderIndividualChart(){
   const lastName=n=>{const parts=n.split(' ');return parts.length>1?parts[parts.length-1]:n};
   chartInstance=new Chart(ctx,{
     type:'line',
-    data:{labels,datasets:playerList.map((p,i)=>({label:lastName(p.name),data:datasets[p.name],borderColor:colors[i%colors.length],backgroundColor:colors[i%colors.length]+'22',borderWidth:2,pointRadius:4,pointHoverRadius:6,pointBackgroundColor:colors[i%colors.length],tension:0.3,fill:false}))},
+    data:{labels,datasets:playerList.map((p,i)=>({label:lastName(p.name),data:datasets[p.name],borderColor:colors[i%colors.length],backgroundColor:colors[i%colors.length]+'22',borderWidth:2,pointRadius:0,pointHoverRadius:5,pointBackgroundColor:colors[i%colors.length],tension:0.3,fill:false}))},
     options:{
       responsive:true,maintainAspectRatio:false,
       interaction:{mode:'index',intersect:false},
@@ -1533,7 +1533,7 @@ function renderIndividualChart(){
     ctx.canvas._chartTapHandler=function(e){
       if(!chartInstance)return;
       const pts=chartInstance.getElementsAtEventForMode(e,'index',{intersect:false},false);
-      if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.update('none')}
+      if(!pts.length){chartInstance.tooltip.setActiveElements([]);chartInstance.setActiveElements([]);chartInstance.update()}
     };
     ctx.canvas.addEventListener('click',ctx.canvas._chartTapHandler);
   }
