@@ -167,7 +167,7 @@
     .view-toggle { display:flex; gap:0; border-radius:6px; overflow:hidden; border:1px solid var(--border); margin-left:auto; }
     .vt-btn { padding:4px 10px; font-family:'Outfit',sans-serif; font-size:0.58rem; font-weight:600; letter-spacing:0.04em; border:none; cursor:pointer; background:transparent; color:var(--text-muted); transition:all 0.15s; }
     .vt-btn.active { background:rgba(201,168,76,0.15); color:var(--gold); }
-    .sb-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:var(--radius); display:none; }
+    .sb-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:var(--radius); display:none; background:var(--surface-1); }
     .sb-wrap::-webkit-scrollbar { height:3px; }
     .sb-wrap::-webkit-scrollbar-thumb { background:rgba(245,240,232,0.1); border-radius:2px; }
     .sb-board { min-width:480px; padding:10px 0 6px; position:relative; }
@@ -180,10 +180,10 @@
     .sb-table .sb-pr { border-bottom:1px solid var(--border); }
     .sb-nm { text-align:left !important; padding-left:10px !important; position:sticky; left:0; z-index:2; background:var(--surface-1); }
     .sb-table thead .sb-nm { color:var(--text-muted); font-size:0.5rem; }
-    .sb-table .sb-pr .sb-nm { font-family:'Oswald',sans-serif; font-size:0.58rem; color:var(--text-muted); letter-spacing:0.06em; background:var(--surface-1); }
+    .sb-table .sb-pr .sb-nm { font-family:'Oswald',sans-serif; font-size:0.58rem; color:var(--text-muted); letter-spacing:0.06em; }
     .sb-table tbody .sb-nm { font-family:'Oswald',sans-serif; font-weight:600; font-size:0.68rem; color:#f5f0d0; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; }
     .sb-table tbody tr { border-top:1px solid var(--border); cursor:pointer; }
-    @media(hover:hover){.sb-table tbody tr:hover { background:var(--surface-2); }.sb-table tbody tr:hover .sb-nm { background:var(--surface-2); }}
+    @media(hover:hover){.sb-table tbody tr:hover { background:var(--surface-2); }}
     
     .sb-table tbody .sb-nm:active { background:var(--surface-2); transition:background 0.1s; }
     .sb-table .sb-break { border-top:1.5px solid rgba(245,240,232,0.12); }
@@ -194,6 +194,20 @@
     .sb-tc { font-weight:700; font-size:0.76rem; min-width:30px; border-left:1px solid var(--border); }
     .sb-thru { font-size:0.5rem; color:var(--text-muted); min-width:22px; border-left:1px solid rgba(245,240,232,0.05); }
     .sb-hint { text-align:center; font-size:0.52rem; color:var(--text-muted); margin-top:5px; font-style:italic; }
+
+    .hr-modal-title { font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.2rem; color:var(--cream); margin-bottom:2px; }
+    .hr-modal-course { font-size:0.75rem; color:var(--text-muted); margin-bottom:16px; }
+    .hr-player-card { background:var(--surface-1); border:1px solid var(--border); border-radius:var(--radius); padding:14px; margin-bottom:10px; }
+    .hr-player-head { display:flex; justify-content:space-between; align-items:center; margin-bottom:10px; }
+    .hr-player-name { font-weight:700; font-size:0.95rem; color:var(--cream); }
+    .hr-player-team { font-size:0.68rem; color:var(--text-muted); }
+    .hr-player-rank { font-size:0.72rem; font-weight:700; color:var(--gold); }
+    .hr-score-grid { display:grid; grid-template-columns:1fr 1fr 1fr 1fr; gap:6px; }
+    .hr-score-box { background:var(--surface-2); border-radius:var(--radius-sm); padding:8px 6px; text-align:center; }
+    .hr-score-label { font-size:0.5rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-bottom:3px; }
+    .hr-score-val { font-weight:700; font-size:0.95rem; color:var(--text-primary); }
+    .history-card { cursor:pointer; transition:background 0.15s; }
+    .history-card:hover { background:var(--surface-2); }
     /* Individual Leaderboard */
     .lb-header { display:grid; grid-template-columns:32px 1fr 54px 62px 54px 40px; gap:4px; padding:10px 14px; font-size:0.62rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); background:var(--surface-2); border-bottom:1px solid var(--border); }
     .lb-header span { text-align:center; }
@@ -850,6 +864,14 @@
     </div>
   </div>
 
+
+  <!-- History Round Modal -->
+  <div class="modal-overlay" id="historyRoundModal">
+    <div class="modal-sheet">
+      <div id="historyRoundContent"></div>
+    </div>
+  </div>
+
   <!-- Info Modal -->
   <div class="modal-overlay" id="infoModal">
     <div class="modal-sheet">
@@ -1464,12 +1486,14 @@ function renderChart(){
 }
 
 /* ═══ HISTORY ═══ */
+function openHistoryRoundModal(rn){const modal=document.getElementById('historyRoundModal');const content=document.getElementById('historyRoundContent');const cn=getCourseName(rn);const rp=players.map(p=>{const res=calcPlayerRound(p,rn);return res&&res.thru>0?{name:p.name,team:p.team,hi:p.hi,...res}:null}).filter(Boolean);const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);if(!byNet.length){content.innerHTML=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}<div style="padding:20px;text-align:center;color:var(--text-muted)">No completed scores yet</div>`;modal.classList.add('open');return}const bestNtp=byNet[0].netToPar;const tied1st=byNet.filter(p=>p.netToPar===bestNtp);const rest=byNet.filter(p=>p.netToPar!==bestNtp);const secondNtp=rest.length?rest[0].netToPar:null;const tied2nd=secondNtp!==null?rest.filter(p=>p.netToPar===secondNtp):[];const showPlayers=[...tied1st.map(p=>({...p,rank:tied1st.length>1?'T1':'1st'})),...tied2nd.map(p=>({...p,rank:tied2nd.length>1?'T2':'2nd'}))];let h=`<div class="hr-modal-title">Round ${rn}</div>${cn?`<div class="hr-modal-course">${esc(cn)}</div>`:''}`;for(const p of showPlayers){const ch=getCH(p.hi,rn);const cp=getCoursePar(rn);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);const fStrokes=Math.ceil(ch/2);const bStrokes=Math.floor(ch/2);const totalNet=(p.front-fStrokes)+(p.back-bStrokes);const ntp=totalNet-cp;h+=`<div class="hr-player-card"><div class="hr-player-head"><div><div class="hr-player-name">${esc(p.name)}</div>${p.team?`<div class="hr-player-team">${esc(p.team)}</div>`:''}</div><div class="hr-player-rank">${p.rank}</div></div><div class="hr-score-grid"><div class="hr-score-box"><div class="hr-score-label">Front 9</div><div class="hr-score-val">${p.front}</div></div><div class="hr-score-box"><div class="hr-score-label">Back 9</div><div class="hr-score-val">${p.back}</div></div><div class="hr-score-box"><div class="hr-score-label">Total Net</div><div class="hr-score-val">${totalNet}</div></div><div class="hr-score-box"><div class="hr-score-label">Net to Par</div><div class="hr-score-val" style="color:${ntp<0?'var(--green-300)':ntp>0?'var(--red)':'var(--cream)'}">${ntp<0?ntp:ntp>0?'+'+ntp:'E'}</div></div></div></div>`}content.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
+
 function renderHistory(){
   const grid=document.getElementById('historyGrid');let html='';
   for(let rn=1;rn<=totalRounds;rn++){
     const rp=players.map(p=>{const res=calcPlayerRound(p,rn);return res&&res.thru>0?{name:p.name,...res}:null}).filter(Boolean);
     const cn=getCourseName(rn);
-    html+=`<div class="history-card"><div class="history-card-head"><div class="history-card-title">Round ${rn}</div>${cn?`<div class="history-course">${esc(cn)}</div>`:''}</div>`;
+    html+=`<div class="history-card" onclick="openHistoryRoundModal(${rn})"><div class="history-card-head"><div class="history-card-title">Round ${rn}</div>${cn?`<div class="history-course">${esc(cn)}</div>`:''}</div>`;
     if(!rp.length){html+='<div class="history-upcoming">Upcoming</div>'}
     else{
       const byNet=rp.filter(p=>p.thru===18).sort((a,b)=>a.netToPar-b.netToPar);
@@ -1687,6 +1711,7 @@ function openTeamModal(teamName){
 document.getElementById('playerModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 document.getElementById('teamModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 document.getElementById('skinsModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+  document.getElementById('historyRoundModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
   document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 
 /* ═══ COLLAPSIBLE SECTIONS ═══ */
@@ -1766,7 +1791,7 @@ function hideRecordsPage(){
   document.querySelectorAll('#individualSection, #historySection, #coursesSection, #hcSection').forEach(el=>el.style.display='block');
   if(teamMode){document.getElementById('teamSection').style.display='block';document.getElementById('chartSection').style.display='block';if(skinsData.length)document.getElementById('skinsSection').style.display='block'}
   document.getElementById('championBanner').style.display='';
-  document.getElementById('highlights').style.display='';
+  document.getElementById('highlights').style.display='none';
   document.getElementById('recordsLinkWrap').style.display='block';
   document.getElementById('scoreEntryFab').style.display='flex';
   if(infoTabs.length) document.getElementById('infoTabsWrap').style.display='flex';
