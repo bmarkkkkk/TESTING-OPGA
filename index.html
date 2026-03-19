@@ -167,32 +167,31 @@
     .view-toggle { display:flex; gap:0; border-radius:6px; overflow:hidden; border:1px solid var(--border); margin-left:auto; }
     .vt-btn { padding:4px 10px; font-family:'Outfit',sans-serif; font-size:0.58rem; font-weight:600; letter-spacing:0.04em; border:none; cursor:pointer; background:transparent; color:var(--text-muted); transition:all 0.15s; }
     .vt-btn.active { background:rgba(201,168,76,0.15); color:var(--gold); }
-    .sb-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border-radius:8px; box-shadow:inset 0 2px 8px rgba(0,0,0,0.3),0 4px 16px rgba(0,0,0,0.4); display:none; }
+    .sb-wrap { overflow-x:auto; -webkit-overflow-scrolling:touch; border:1px solid var(--border); border-radius:var(--radius); display:none; }
     .sb-wrap::-webkit-scrollbar { height:3px; }
     .sb-wrap::-webkit-scrollbar-thumb { background:rgba(245,240,232,0.1); border-radius:2px; }
-    .sb-board { background:#1a5e2a; background-image:repeating-linear-gradient(0deg,transparent,transparent 39px,rgba(0,0,0,0.06) 39px,rgba(0,0,0,0.06) 40px),repeating-linear-gradient(90deg,transparent,transparent 39px,rgba(0,0,0,0.03) 39px,rgba(0,0,0,0.03) 40px); min-width:480px; padding:12px 4px 8px; position:relative; }
-    .sb-board::before { content:''; position:absolute; inset:0; background:url("data:image/svg+xml,%3Csvg width='200' height='200' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='n'%3E%3CfeTurbulence baseFrequency='0.65' numOctaves='3'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)' opacity='0.035'/%3E%3C/svg%3E"); pointer-events:none; }
-    .sb-title { text-align:center; font-family:'Oswald',sans-serif; font-weight:700; font-size:1.4rem; color:#f5f0d0; letter-spacing:0.2em; text-transform:uppercase; margin-bottom:8px; text-shadow:1px 2px 3px rgba(0,0,0,0.35); position:relative; }
+    .sb-board { min-width:480px; padding:10px 0 6px; position:relative; }
+    .sb-title { text-align:center; font-family:'Oswald',sans-serif; font-weight:700; font-size:1.3rem; color:var(--cream); letter-spacing:0.18em; text-transform:uppercase; margin-bottom:8px; position:relative; }
     .sb-table { width:100%; border-collapse:collapse; position:relative; }
-    .sb-table th,.sb-table td { text-align:center; padding:3px 2px; font-family:'Roboto Condensed',sans-serif; vertical-align:middle; position:relative; }
-    .sb-table .sb-rh th { font-size:0.4rem; color:rgba(196,201,160,0.45); font-weight:500; padding:2px 2px 0; text-transform:uppercase; }
-    .sb-table .sb-nh th { font-size:0.5rem; color:#c4c9a0; font-weight:700; padding:1px 2px 3px; }
-    .sb-table .sb-pr td { color:#c4c9a0; font-weight:700; font-size:0.58rem; }
-    .sb-table .sb-pr { border-bottom:1.5px solid rgba(255,255,255,0.1); }
-    .sb-nm { text-align:left !important; padding-left:8px !important; width:90px; min-width:90px; position:sticky; left:0; z-index:2; }
-    .sb-table thead .sb-nm { color:#c4c9a0; font-size:0.5rem; }
-    .sb-table .sb-pr .sb-nm { font-family:'Oswald',sans-serif; font-size:0.6rem; color:#c4c9a0; letter-spacing:0.06em; background:#1a5e2a; }
-    .sb-table tbody .sb-nm { font-family:'Oswald',sans-serif; font-weight:600; font-size:0.68rem; color:#f5f0d0; letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; cursor:pointer; background:#1a5e2a; }
-    .sb-table tbody tr:hover .sb-nm { background:#1d6830; }
-    .sb-table tbody tr { border-top:1px solid rgba(255,255,255,0.06); }
-    .sb-table tbody tr:hover { background:rgba(255,255,255,0.03); }
-    .sb-table .sb-break { border-top:2px solid rgba(255,255,255,0.14); }
+    .sb-table th,.sb-table td { text-align:center; padding:3px 2px; font-family:'Roboto Condensed',sans-serif; vertical-align:middle; }
+    .sb-table .sb-rh th { font-size:0.4rem; color:var(--text-muted); font-weight:500; padding:2px 2px 0; text-transform:uppercase; opacity:0.5; }
+    .sb-table .sb-nh th { font-size:0.5rem; color:var(--text-muted); font-weight:700; padding:1px 2px 3px; }
+    .sb-table .sb-pr td { color:var(--text-muted); font-weight:700; font-size:0.58rem; }
+    .sb-table .sb-pr { border-bottom:1px solid var(--border); }
+    .sb-nm { text-align:left !important; padding-left:10px !important; width:92px; min-width:92px; position:sticky; left:0; z-index:2; background:var(--bg); }
+    .sb-table thead .sb-nm { color:var(--text-muted); font-size:0.5rem; }
+    .sb-table .sb-pr .sb-nm { font-family:'Oswald',sans-serif; font-size:0.58rem; color:var(--text-muted); letter-spacing:0.06em; }
+    .sb-table tbody .sb-nm { font-family:'Oswald',sans-serif; font-weight:600; font-size:0.68rem; color:var(--cream); letter-spacing:0.02em; text-transform:uppercase; white-space:nowrap; }
+    .sb-table tbody tr { border-top:1px solid var(--border); cursor:pointer; transition:background 0.15s; }
+    .sb-table tbody tr:hover { background:var(--surface-2); }
+    .sb-table tbody tr:hover .sb-nm { background:var(--surface-2); }
+    .sb-table .sb-break { border-top:1.5px solid rgba(245,240,232,0.12); }
     .sb-sc { font-weight:700; font-size:0.68rem; min-width:24px; }
     .sb-un { color:#e74c3c; }
-    .sb-ov { color:#f5f0d0; }
-    .sb-ev { color:#4aaf5a; }
-    .sb-tc { font-weight:700; font-size:0.76rem; min-width:30px; border-left:1.5px solid rgba(255,255,255,0.1); }
-    .sb-thru { font-size:0.52rem; color:rgba(196,201,160,0.6); min-width:22px; border-left:1px solid rgba(255,255,255,0.06); }
+    .sb-ov { color:var(--cream); }
+    .sb-ev { color:var(--green-300); }
+    .sb-tc { font-weight:700; font-size:0.76rem; min-width:30px; border-left:1px solid var(--border); }
+    .sb-thru { font-size:0.5rem; color:var(--text-muted); min-width:22px; border-left:1px solid rgba(245,240,232,0.05); }
     .sb-hint { text-align:center; font-size:0.52rem; color:var(--text-muted); margin-top:5px; font-style:italic; }
     /* Individual Leaderboard */
     .lb-header { display:grid; grid-template-columns:32px 1fr 54px 62px 54px 40px; gap:4px; padding:10px 14px; font-size:0.62rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); background:var(--surface-2); border-bottom:1px solid var(--border); }
@@ -2278,12 +2277,12 @@ async function saveAdminScores(){await saveAllPlayers();showAdminToast('Scores s
 let lbView='table';let lbManualChoice=false;
 function setLbView(v,manual){lbView=v;if(manual)lbManualChoice=true;document.querySelectorAll('#lbViewToggle .vt-btn').forEach(b=>b.classList.toggle('active',b.dataset.view===v));document.getElementById('individualCard').style.display=v==='table'?'block':'none';document.getElementById('scoreboardWrap').style.display=v==='board'?'block':'none';document.getElementById('sbHint').style.display=v==='board'?'block':'none';if(v==='board')renderScoreboard()}
 
-function renderScoreboard(){const head=document.getElementById('sbHead');const body=document.getElementById('sbBody');if(!players.length||currentView!=='tournament'){head.innerHTML='';body.innerHTML='';return}const rns=Object.keys(roundMap).map(Number).sort((a,b)=>a-b);const numR=rns.length;let rh='<tr class="sb-rh"><th class="sb-nm"></th>';let nh='<tr class="sb-nh"><th class="sb-nm"></th>';let pr='<tr class="sb-pr"><td class="sb-nm">PAR</td>';for(const rn of rns){rh+=`<th colspan="2">R${rn}</th>`;nh+='<th>F</th><th>B</th>';const cp=getCoursePar(rn);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);pr+=`<td>${fp}</td><td>${bp}</td>`}rh+='<th></th><th></th></tr>';nh+='<th>Tot</th><th style="font-size:0.38rem;color:rgba(196,201,160,0.4)">Thru</th></tr>';pr+='<td class="sb-tc"></td><td class="sb-thru"></td></tr>';head.innerHTML=rh+nh+pr;const sorted=[...players].sort((a,b)=>{const aN=calcNtp(a);const bN=calcNtp(b);return aN-bN});let html='';let prevNtp=null;let groupIdx=0;sorted.forEach((p,pi)=>{const ntp=calcNtp(p);const showBreak=pi>0&&(ntp-prevNtp)>=2;const row=`<tr${showBreak?' class="sb-break"':''}>`+`<td class="sb-nm" onclick="openPlayerModal('${esc(p.name)}')">${esc(p.name.split(' ').pop())}</td>`;let cum=0;let cells='';let thruCount=0;for(const rn of rns){const r=p.rounds[String(rn)]||{};const cp=getCoursePar(rn);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);const ch=getCH(p.hi,rn);const fStrokes=Math.ceil(ch/2);const bStrokes=Math.floor(ch/2);if(r.front>0){const fNet=r.front-fStrokes;const fNtp=fNet-fp;cum+=fNtp;thruCount+=9;const cls=cum<0?'sb-un':cum>0?'sb-ov':'sb-ev';cells+=`<td class="sb-sc ${cls}">${cum<0?cum:cum===0?'E':'+'+cum}</td>`}else{cells+='<td class="sb-sc" style="opacity:0.15">-</td>'}if(r.back>0){const bNet=r.back-bStrokes;const bNtp=bNet-bp;cum+=bNtp;thruCount+=9;const cls=cum<0?'sb-un':cum>0?'sb-ov':'sb-ev';cells+=`<td class="sb-sc ${cls}">${cum<0?cum:cum===0?'E':'+'+cum}</td>`}else{cells+='<td class="sb-sc" style="opacity:0.15">-</td>'}}const totCls=ntp<0?'sb-un':ntp>0?'sb-ov':'sb-ev';const totText=ntp<0?String(ntp):ntp===0?'E':'+'+ntp;const thruText=thruCount>=totalRounds*18?'F':String(thruCount);cells+=`<td class="sb-tc ${totCls}">${totText}</td>`;cells+=`<td class="sb-thru">${thruText}</td>`;html+=row+cells+'</tr>';prevNtp=ntp});body.innerHTML=html}
+function renderScoreboard(){const head=document.getElementById('sbHead');const body=document.getElementById('sbBody');if(!players.length||currentView!=='tournament'){head.innerHTML='';body.innerHTML='';return}const rns=Object.keys(roundMap).map(Number).sort((a,b)=>a-b);const numR=rns.length;let rh='<tr class="sb-rh"><th class="sb-nm"></th>';let nh='<tr class="sb-nh"><th class="sb-nm"></th>';let pr='<tr class="sb-pr"><td class="sb-nm">PAR</td>';for(const rn of rns){rh+=`<th colspan="2">R${rn}</th>`;nh+='<th>F</th><th>B</th>';const cp=getCoursePar(rn);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);pr+=`<td>${fp}</td><td>${bp}</td>`}rh+='<th></th><th></th></tr>';nh+='<th>Tot</th><th style="font-size:0.38rem;color:rgba(196,201,160,0.4)">Thru</th></tr>';pr+='<td class="sb-tc"></td><td class="sb-thru"></td></tr>';head.innerHTML=rh+nh+pr;const sorted=[...players].sort((a,b)=>{const aN=calcNtp(a);const bN=calcNtp(b);return aN-bN});let html='';let prevNtp=null;let groupIdx=0;sorted.forEach((p,pi)=>{const ntp=calcNtp(p);const showBreak=pi>0&&((prevNtp<0&&ntp>=0)||(prevNtp<=0&&ntp>0));const row=`<tr${showBreak?' class="sb-break"':''} onclick="openPlayerModal('${esc(p.name).replace(/'/g,"\\'")}')" style="cursor:pointer">`+`<td class="sb-nm">${esc(p.name.split(' ').pop())}</td>`;let cum=0;let cells='';let thruCount=0;for(const rn of rns){const r=p.rounds[String(rn)]||{};const cp=getCoursePar(rn);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);const ch=getCH(p.hi,rn);const fStrokes=Math.ceil(ch/2);const bStrokes=Math.floor(ch/2);if(r.front>0){const fNet=r.front-fStrokes;const fNtp=fNet-fp;cum+=fNtp;thruCount+=9;const cls=cum<0?'sb-un':cum>0?'sb-ov':'sb-ev';cells+=`<td class="sb-sc ${cls}">${cum<0?cum:cum===0?'E':'+'+cum}</td>`}else{cells+='<td class="sb-sc" style="opacity:0.15">-</td>'}if(r.back>0){const bNet=r.back-bStrokes;const bNtp=bNet-bp;cum+=bNtp;thruCount+=9;const cls=cum<0?'sb-un':cum>0?'sb-ov':'sb-ev';cells+=`<td class="sb-sc ${cls}">${cum<0?cum:cum===0?'E':'+'+cum}</td>`}else{cells+='<td class="sb-sc" style="opacity:0.15">-</td>'}}const totCls=ntp<0?'sb-un':ntp>0?'sb-ov':'sb-ev';const totText=ntp<0?String(ntp):ntp===0?'E':'+'+ntp;const thruText=thruCount>=totalRounds*18?'F':String(thruCount);cells+=`<td class="sb-tc ${totCls}">${totText}</td>`;cells+=`<td class="sb-thru">${thruText}</td>`;html+=row+cells+'</tr>';prevNtp=ntp});body.innerHTML=html}
 
 function calcNtp(p){let ntp=0;for(const rn of Object.keys(roundMap)){const r=p.rounds[rn]||{};if(!r.front&&!r.back)continue;const cp=getCoursePar(parseInt(rn));const ch=getCH(p.hi,parseInt(rn));const fStrokes=Math.ceil(ch/2);const bStrokes=Math.floor(ch/2);const fp=Math.ceil(cp/2);const bp=Math.floor(cp/2);if(r.front>0)ntp+=(r.front-fStrokes)-fp;if(r.back>0)ntp+=(r.back-bStrokes)-bp}return ntp}
 
-window.addEventListener('orientationchange',function(){setTimeout(function(){const landscape=window.innerWidth>window.innerHeight;if(!lbManualChoice){if(landscape)setLbView('board',false);else setLbView('table',false)}},200)});
-window.matchMedia('(orientation:landscape)').addEventListener('change',function(e){if(!lbManualChoice){setLbView(e.matches?'board':'table',false)}});
+window.addEventListener('orientationchange',function(){setTimeout(function(){const landscape=window.innerWidth>window.innerHeight;setLbView(landscape?'board':'table',false);lbManualChoice=false},200)});
+window.matchMedia('(orientation:landscape)').addEventListener('change',function(e){setLbView(e.matches?'board':'table',false);lbManualChoice=false});
 
 async function repairZeros(){if(!gAuthToken){showAdminToast('Sign in first',true);return}showAdminToast('Repairing…');const tab=`Scores ${adminYear}`;const scoresRaw=await fetchTab(tab);if(scoresRaw.length<=1){showAdminToast('No data found',true);return}const maxCol=scoresRaw[0].length;let fixed=0;const rows=[];for(let i=1;i<scoresRaw.length;i++){const r=scoresRaw[i];if(!r[0]||!r[0].trim()){rows.push(r);continue}const row=[...r];while(row.length<maxCol)row.push('0');for(let c=3;c<maxCol;c++){if(!row[c]||row[c].trim()===''||row[c].trim()==='-'){row[c]='0';fixed++}}rows.push(row)}if(fixed===0){showAdminToast('All cells already have values');return}const lc=String.fromCharCode(64+maxCol);const ok=await writeAdminToSheet(`${tab}!A2:${lc}${rows.length+1}`,rows);if(ok){showAdminToast(fixed+' empty cells filled with 0');if(adminYear===currentYear){lastCSV='';load()}await loadAdminYear(adminYear);renderAdminTab('scores')}else{showAdminToast('Repair failed',true)}}
 
