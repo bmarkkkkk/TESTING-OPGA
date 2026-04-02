@@ -91,8 +91,8 @@
     .countdown-banner.show { display:block; animation:fadeUp 0.4s ease both; }
     .countdown-label { font-size:0.68rem; font-weight:600; letter-spacing:0.18em; text-transform:uppercase; color:var(--green-300); margin-bottom:2px; }
     .countdown-course { font-family:'Cormorant Garamond',serif; font-weight:600; font-size:1.1rem; color:var(--cream); margin-bottom:2px; }
-    .countdown-date { font-size:0.72rem; color:var(--text-muted); margin-bottom:12px; }
-    .countdown-timer { display:flex; justify-content:center; gap:12px; margin-bottom:4px; }
+    .countdown-date { font-size:0.72rem; color:var(--text-muted); margin-bottom:0; }
+    .countdown-timer { display:flex; justify-content:center; gap:12px; margin-bottom:12px; }
     .countdown-unit { text-align:center; min-width:48px; }
     .countdown-val { font-family:'Outfit',sans-serif; font-weight:700; font-size:1.5rem; color:var(--cream); line-height:1; }
     .countdown-lbl { font-size:0.5rem; font-weight:600; letter-spacing:0.1em; text-transform:uppercase; color:var(--text-muted); margin-top:4px; }
@@ -711,14 +711,14 @@
 
     <div class="countdown-banner" id="countdownBanner">
       <div class="countdown-label">Tournament Begins In</div>
-      <div class="countdown-course" id="countdownCourse"></div>
-      <div class="countdown-date" id="countdownDate"></div>
       <div class="countdown-timer">
         <div class="countdown-unit"><div class="countdown-val" id="cdDays">0</div><div class="countdown-lbl">Days</div></div>
         <div class="countdown-unit"><div class="countdown-val" id="cdHours">0</div><div class="countdown-lbl">Hours</div></div>
         <div class="countdown-unit"><div class="countdown-val" id="cdMins">0</div><div class="countdown-lbl">Min</div></div>
         <div class="countdown-unit"><div class="countdown-val" id="cdSecs">0</div><div class="countdown-lbl">Sec</div></div>
       </div>
+      <div class="countdown-course" id="countdownCourse"></div>
+      <div class="countdown-date" id="countdownDate"></div>
     </div>
     <div class="countdown-live" id="countdownLive">
       <div class="countdown-live-text">The Tournament is LIVE!</div>
@@ -1051,7 +1051,7 @@ async function load(){
   if(csv===lastCSV){renderSkinsSection();return}
   lastCSV=csv;
 
-  if(roundsRaw.length>1){roundMap={};parseTournamentStart(roundsRaw);for(let i=1;i<roundsRaw.length;i++){const r=roundsRaw[i];if(r[0]&&r[1])roundMap[r[0].replace(/[^0-9]/g,'')]=r[1].trim()}}
+  countdownDismissed=false;if(roundsRaw.length>1){roundMap={};parseTournamentStart(roundsRaw);for(let i=1;i<roundsRaw.length;i++){const r=roundsRaw[i];if(r[0]&&r[1])roundMap[r[0].replace(/[^0-9]/g,'')]=r[1].trim()}}
   totalRounds=Math.max(1,Object.keys(roundMap).length);
   if(scoresRaw.length>1){
     players=[];
@@ -1144,7 +1144,7 @@ function isTournamentComplete(){
 function render(){
   if(recordsOpen)return;
   const anyScores=players.some(p=>Object.values(p.rounds).some(r=>r.front>0||r.back>0));
-  if(anyScores){countdownDismissed=true;document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.remove('show');if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null}}else{startCountdown()}
+  if(anyScores||currentView!=='tournament'){document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.remove('show');if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null}}else if(!countdownDismissed){startCountdown()}
   // Show/hide team sections based on teamMode
   document.getElementById('teamSection').style.display=teamMode?'block':'none';
   document.getElementById('chartSection').style.display=teamMode?'block':'none';
@@ -1913,7 +1913,7 @@ function renderYearSelector(){
       btn.classList.add('active');
       currentYear=y;
       lastCSV='';
-      players=[];roundMap={};prevRanks={};
+      players=[];roundMap={};prevRanks={};countdownDismissed=false;if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null}
       load();
     });
   });
