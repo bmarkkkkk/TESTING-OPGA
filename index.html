@@ -3313,7 +3313,7 @@ function renderLgStandings(){
     const lgAllComplete=!isRound&&lgTeams.length>0&&displayStats.every(s=>s.played>=(lgTeams.length-1))&&(lgTeams.length-1)>0;
     h+=`<div class="lg-standings-row${i===0&&lgAllComplete?' rank-1':''}" onclick="openLgTeamModal('${s.label}')">
       <div class="rank">${i+1}</div>
-      <div><div class="team-nm">${esc(s.name)}<span style="font-size:0.65rem;font-weight:400;color:var(--text-muted);margin-left:6px">${(()=>{const t=lgTeamByLabel(s.label);return t?'('+esc(t.p1)+', '+esc(t.p2)+')':''})()}</span></div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
+      <div><div class="team-nm">${esc(s.name)}</div><div style="font-size:0.65rem;font-weight:400;color:var(--text-muted)">${(()=>{const t=lgTeamByLabel(s.label);return t?esc(t.p1)+', '+esc(t.p2):''})()}</div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
       <div class="stat">${s.won}</div><div class="stat">${s.lost}</div><div class="stat">${s.halved}</div><div class="stat" style="font-size:0.75rem;color:${ntpColor};${s.ntp<0?'font-weight:700':''}">${ntpStr}</div>
     </div>`;
   });
