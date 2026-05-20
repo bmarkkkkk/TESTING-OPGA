@@ -3182,6 +3182,66 @@ async function renderLgRecordsPage(){
   }
   h+=`</div>`;
 
+
+  // ── Course History ──
+  h+=`<div class="section"><div class="section-head"><span class="section-title">Course History</span><span class="section-line"></span></div>`;
+  const lgCourseData={};
+  for(const y of lgYears){
+    const d=allLgData[y];if(!d.yearComplete)continue;
+    for(const m of d.matches){
+      if((m.t1fw+m.t2fw+m.t1bw+m.t2bw)===0)continue;
+      const cName=m.course;if(!cName)continue;
+      const crs=courses[cName];if(!crs)continue;
+      if(!lgCourseData[cName])lgCourseData[cName]={rounds:0,totalNtp:0,totalPlayers:0,bestNet:Infinity,bestNetBys:[],bestGrossGtp:Infinity,bestGrossScore:0,bestGrossBys:[],par:crs.par,rating:crs.rating,slope:crs.slope};
+      const cd=lgCourseData[cName];
+      cd.rounds++;
+      const rIdx=m.round-1;
+      const t1t=d.teams.find(t=>t.label===m.t1);
+      const t2t=d.teams.find(t=>t.label===m.t2);
+      const allPlayers=[];
+      if(t1t){
+        allPlayers.push({name:t1t.p1,hi:t1t.p1hi[rIdx]||0,f:m.p1f,b:m.p1b});
+        allPlayers.push({name:t1t.p2,hi:t1t.p2hi[rIdx]||0,f:m.p2f,b:m.p2b});
+      }
+      if(t2t){
+        allPlayers.push({name:t2t.p1,hi:t2t.p1hi[rIdx]||0,f:m.p3f,b:m.p3b});
+        allPlayers.push({name:t2t.p2,hi:t2t.p2hi[rIdx]||0,f:m.p4f,b:m.p4b});
+      }
+      for(const p of allPlayers){
+        if(p.f<=0&&p.b<=0)continue;
+        const ch=lgGetCH(p.hi,cName);
+        const gross=p.f+p.b;const net=gross-ch;const ntp=net-crs.par;
+        cd.totalNtp+=ntp;cd.totalPlayers++;
+        if(ntp<cd.bestNet){cd.bestNet=ntp;cd.bestNetBys=[esc(p.name)+' \u00b7 '+y]}
+        else if(ntp===cd.bestNet){const entry=esc(p.name)+' \u00b7 '+y;if(!cd.bestNetBys.includes(entry))cd.bestNetBys.push(entry)}
+        const gtp=gross-crs.par;
+        if(gtp<cd.bestGrossGtp){cd.bestGrossGtp=gtp;cd.bestGrossScore=gross;cd.bestGrossBys=[{text:esc(p.name)+' \u00b7 '+y,ntp}]}
+        else if(gtp===cd.bestGrossGtp){const entry=esc(p.name)+' \u00b7 '+y;if(!cd.bestGrossBys.some(b=>b.text===entry))cd.bestGrossBys.push({text:entry,ntp})}
+      }
+    }
+  }
+  const lgCourseSorted=Object.entries(lgCourseData).filter(([,d])=>d.rounds>0).sort((a,b)=>b[1].rounds-a[1].rounds);
+  if(lgCourseSorted.length){
+    h+=`<div class="card">`;
+    h+=lgCourseSorted.map(([name,d])=>{
+      const avgNtp=d.totalPlayers>0?(d.totalNtp/d.totalPlayers):0;
+      const avgStr=avgNtp===0?'E':(avgNtp>0?'+'+avgNtp.toFixed(1):avgNtp.toFixed(1));
+      return`<div class="course-hist-item">
+        <div class="course-hist-name"><span class="course-hist-name-text">${esc(name)}</span><span class="course-hist-name-line"></span><span class="course-hist-name-info">Par ${d.par} / ${parseFloat(d.rating).toFixed(1)} / ${d.slope}</span></div>
+        <div class="course-hist-stats">
+          <div class="course-hist-stat"><div class="course-hist-stat-label">Rounds Played</div><div class="course-hist-stat-val">${d.rounds}</div></div>
+          <div class="course-hist-stat"><div class="course-hist-stat-label">Avg Net to Par</div><div class="course-hist-stat-val">${avgStr}</div></div>
+          <div class="course-hist-stat"><div class="course-hist-stat-label">Best Net Round</div><div class="course-hist-stat-val">${fmtPar(d.bestNet)}</div>${d.bestNetBys.length?`<div class="course-hist-stat-sub">${d.bestNetBys.join('<br>')}</div>`:''}</div>
+          <div class="course-hist-stat"><div class="course-hist-stat-label">Best Gross</div><div class="course-hist-stat-val">${d.bestGrossScore||'\u2014'}</div>${d.bestGrossBys.length?`<div class="course-hist-stat-sub">${d.bestGrossBys.sort((a,b)=>a.ntp-b.ntp).map(b=>fmtPar(b.ntp)+' \u00b7 '+b.text).join('<br>')}</div>`:''}</div>
+        </div>
+      </div>`;
+    }).join('');
+    h+=`</div>`;
+  }else{
+    h+=`<div class="card" style="padding:20px;text-align:center;color:var(--text-muted)">No course data yet</div>`;
+  }
+  h+=`</div>`;
+
   content.innerHTML=h;
 }
 
