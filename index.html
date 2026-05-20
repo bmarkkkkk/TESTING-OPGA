@@ -2903,6 +2903,7 @@ function renderLgYearSelector(){
 
 // ── View Controls ──
 function renderLgViewControls(){
+  document.getElementById('lgViewControls').style.display='';
   const maxR=lgTotalRounds();
   const btns=document.getElementById('lgViewBtns');
   let h=`<button class="ctrl-btn${lgCurrentView==='league'?' active':''}" data-lgview="league">League</button>`;
@@ -3174,6 +3175,8 @@ function renderLgBadge(){
 function renderLeague(){
   if(lgRecordsOpen)return;
   document.getElementById('lgRecordsLinkWrap').style.display='';
+  document.getElementById('lgStandingsSection').style.display='';
+  document.getElementById('lgMatchesSection').style.display='';
   renderLgBadge();
   renderLgViewControls();
   renderLgChampion();
