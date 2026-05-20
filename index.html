@@ -3264,15 +3264,15 @@ function lgRemoveYear(i){
 
 async function saveLgConfig(){
   const name=document.getElementById('lgAdminName').value.trim()||'OPGA Round Robin';
-  const yearInputs=document.querySelectorAll('.lg-year-input');
+  const yearInputs=document.querySelectorAll('#lgAdminYears .lg-year-input');
   const years=[...yearInputs].map(i=>i.value.trim()).filter(Boolean);
   if(!years.length){showAdminToast('Need at least one year',true);return}
   let ok=await writeRawToSheet('League Config!A1:D1',[['Year','League Name','Scorer PIN','Admin PIN']]);
-  ok=await writeRawToSheet('League Config!B2',[[name]])&&ok;
-  const yearVals=years.map(y=>[y]);
-  ok=await writeRawToSheet('League Config!A2:A'+(years.length+1),yearVals)&&ok;
+  // Write years + name together: A=year, B=name(row2 only)
+  const rows=years.map((y,i)=>i===0?[y,name]:[y,'']);
+  ok=await writeRawToSheet('League Config!A2:B'+(years.length+1),rows)&&ok;
   // Clear extra rows
-  await writeAdminToSheet('League Config!A'+(years.length+2)+':A'+(years.length+21),Array.from({length:20},()=>['']));
+  await writeAdminToSheet('League Config!A'+(years.length+2)+':B'+(years.length+21),Array.from({length:20},()=>['','']));
   // Create tabs for new years
   try{
     const sheetsRes=await fetch(`https://sheets.googleapis.com/v4/spreadsheets/${SHEET_ID}`,{headers:{'Authorization':`Bearer ${gAuthToken}`}});
@@ -3446,15 +3446,13 @@ async function handleLgScoreInput(e){
   const row=inp.dataset.row;const col=inp.dataset.col;
   const numVal=parseInt(val)||0;
   const tab='League Scores '+lgCurrentYear;
-  const badge=inp.nextElementSibling;
+  let ok=false;
   try{
-    let ok=false;
     if(APPS_SCRIPT_URL){
-      const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'writeScore',pin:scorerPIN,year:lgCurrentYear,playerRow:parseInt(row),round:1,front:col==='H'||col==='J'||col==='L'||col==='N'?numVal:undefined,back:col==='I'||col==='K'||col==='M'||col==='O'?numVal:undefined})});
-      // Apps script won't work for league columns, use OAuth instead
-      ok=false;
+      const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'writeLeagueScore',pin:scorerPIN,year:lgCurrentYear,row:parseInt(row),col:col,val:numVal})});
+      const d=await res.json();ok=d.ok;
     }
-    if(gAuthToken){
+    if(!ok&&gAuthToken){
       const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+col+row)+'?valueInputOption=USER_ENTERED',{method:'PUT',headers:{'Authorization':'Bearer '+gAuthToken,'Content-Type':'application/json'},body:JSON.stringify({range:tab+'!'+col+row,values:[[numVal]]})});
       ok=res.ok;
     }
@@ -3471,17 +3469,11 @@ async function handleLgScoreInput(e){
 
 // ── League Scorer Modal ──
 function openLgScorerModal(){
-  if(!gAuthToken){
-    openPinModal('scorer',{title:'League Scores',sub:'Enter scorer PIN',onSuccess:function(){
-      const c=document.getElementById('lgScorerContent');
-      renderLgAdminScores(c);
-      document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
-    }});
-  }else{
+  openPinModal('scorer',{title:'League Scores',sub:'Enter scorer PIN',onSuccess:function(){
     const c=document.getElementById('lgScorerContent');
     renderLgAdminScores(c);
     document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
-  }
+  }});
 }
 
   </script>
