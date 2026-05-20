@@ -3382,8 +3382,8 @@ function renderLgMatches(){
       h+=`<div style="color:var(--text-muted)">Halved</div><div style="text-align:center;color:var(--text-muted)">${frontHalved}</div><div style="text-align:center;color:var(--text-muted)">${backHalved}</div><div style="text-align:center;color:var(--text-muted)">${frontHalved+backHalved}</div>`;
       h+=`</div>`;
 
-      // Player scores for round view
-      if(isRound){
+      // Player scores
+      {
         const t1Team=lgTeamByLabel(m.t1);const t2Team=lgTeamByLabel(m.t2);
         if(t1Team&&t2Team){
           h+=`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">`;
@@ -3395,7 +3395,7 @@ function renderLgMatches(){
             {name:t2Team.p1,hi:t2Team.p1hi[rIdx]||0,f:m.p3f,b:m.p3b,team:t2Name},
             {name:t2Team.p2,hi:t2Team.p2hi[rIdx]||0,f:m.p4f,b:m.p4b,team:t2Name}
           ];
-          for(const p of allP){
+          for(const p of allP.sort((a,b)=>{const aN=a.f>0||a.b>0?1:0;const bN=b.f>0||b.b>0?1:0;if(aN!==bN)return bN-aN;const crs=courses[m.course];const aNet=crs?((a.f+a.b)-lgGetCH(a.hi,m.course)-crs.par):0;const bNet=crs?((b.f+b.b)-lgGetCH(b.hi,m.course)-crs.par):0;return aNet-bNet||a.hi-b.hi})){
             const ch=m.course?lgGetCH(p.hi,m.course):0;
             const crs=courses[m.course];
             const gross=p.f+p.b;const net=gross-ch;const ntp=crs?(net-crs.par):0;
