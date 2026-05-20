@@ -2116,9 +2116,10 @@ function showRecordsPage(){
   // Clear current year cache so we get fresh live data
   delete allYearsData[currentYear];
   // Hide main content sections and records link
-  document.querySelectorAll('#yearControls, .controls, #championBanner, #highlights, #teamSection, #chartSection, #skinsSection, #individualSection, #historySection, #coursesSection, #hcSection, #infoTabsWrap, #countdownBanner, #countdownLive, #courseInfoCard').forEach(el=>el.style.display='none');
+  document.querySelectorAll('#modeSwitcher, #mainHeader, #yearControls, .controls, #championBanner, #highlights, #teamSection, #chartSection, #skinsSection, #individualSection, #historySection, #coursesSection, #hcSection, #infoTabsWrap, #countdownBanner, #countdownLive, #courseInfoCard').forEach(el=>el.style.display='none');
   document.getElementById('recordsLinkWrap').style.display='none';
   document.getElementById('scoreEntryFab').style.display='none';
+  document.getElementById('siteFooter').style.display='none';
   document.getElementById('leaguePage').style.display='none';
   document.getElementById('recordsPage').style.display='block';
   loadAllYearsAndRender();
@@ -2129,6 +2130,9 @@ function hideRecordsPage(){
   if(lgMode==='league')return;
   recordsOpen = false;
   document.getElementById('recordsPage').style.display='none';
+  document.getElementById('modeSwitcher').style.display='flex';
+  document.getElementById('mainHeader').style.display='';
+  document.getElementById('siteFooter').style.display='';
   // Restore main content
   if(availableYears.length>1) document.getElementById('yearControls').style.display='flex';
   document.querySelectorAll('.controls').forEach(el=>el.style.display='flex');
@@ -3119,9 +3123,9 @@ async function renderLgRecordsPage(){
   }
   h+=`<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(160px,1fr));gap:12px;margin-bottom:24px">`;
   if(mostWins){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">🔥</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Most Wins (Season)</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--under-par);margin:4px 0">${mostWins.val}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(mostWins.name)} · ${mostWins.year}</div></div>`}
-  if(mostLosses){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">🥄</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Most Losses (Season)</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--over-par);margin:4px 0">${mostLosses.val}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(mostLosses.name)} · ${mostLosses.year}</div></div>`}
+  if(mostLosses){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">🗑️</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Most Losses (Season)</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--over-par);margin:4px 0">${mostLosses.val}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(mostLosses.name)} · ${mostLosses.year}</div></div>`}
   if(bestTeamRound){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">💪</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Best Team Net Round</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--under-par);margin:4px 0">${fmtPar(bestTeamRound.val)}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(bestTeamRound.name)} · ${bestTeamRound.year}</div></div>`}
-  if(bestIndivRound){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">👑</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Best Individual Net Round</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--under-par);margin:4px 0">${fmtPar(bestIndivRound.val)}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(bestIndivRound.name)} · ${bestIndivRound.gross} gross · ${bestIndivRound.year}</div></div>`}
+  if(bestIndivRound){h+=`<div class="card" style="padding:14px;text-align:center"><div style="font-size:1em;margin-bottom:4px">👑</div><div style="font-size:0.55rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);text-transform:uppercase">Best Net Round</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1.1rem;color:var(--under-par);margin:4px 0">${fmtPar(bestIndivRound.val)}</div><div style="font-size:0.68rem;color:var(--text-secondary)">${esc(bestIndivRound.name)} · ${bestIndivRound.gross} gross · ${bestIndivRound.year}</div></div>`}
   h+=`</div></div>`;
 
   // ── Player History ──
