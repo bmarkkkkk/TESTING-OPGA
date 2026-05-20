@@ -2972,10 +2972,13 @@ function renderLgChampion(){
   if(tied.length>1){
     document.getElementById('lgChampLabel').innerHTML='<span style="font-size:1.4em;vertical-align:middle">🏆</span> '+lgCurrentYear+' League Champions';
     document.getElementById('lgChampTeam').textContent=tied.map(t=>t.name).join(' & ');
-    document.getElementById('lgChampMargin').textContent='Tied';
+    const tiedPlayers=tied.map(t=>{const tm=lgTeamByLabel(t.label);return tm?tm.p1+' & '+tm.p2:''}).filter(Boolean).join(' · ');
+    document.getElementById('lgChampIndiv').innerHTML=tiedPlayers?'<div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">'+esc(tiedPlayers)+'</div>':'';document.getElementById('lgChampMargin').textContent='Tied';
   }else{
     document.getElementById('lgChampLabel').innerHTML='<span style="font-size:1.4em;vertical-align:middle">🏆</span> '+lgCurrentYear+' League Champion';
     document.getElementById('lgChampTeam').textContent=best.name;
+    const champTeam=lgTeamByLabel(best.label);
+    document.getElementById('lgChampIndiv').innerHTML=champTeam?'<div style="font-size:0.78rem;color:var(--text-secondary);margin-bottom:4px">'+esc(champTeam.p1)+' &amp; '+esc(champTeam.p2)+'</div>':'';
     const second=standings[1];
     const diff=best.won-second.won;
     document.getElementById('lgChampMargin').textContent='Won by '+diff+' hole'+(diff!==1?'s':'')+' over '+second.name;
@@ -3326,8 +3329,7 @@ function lgGetMatchStrokes(m){
   const diff=Math.abs(t1CH-t2CH);
   if(diff===0)return{text:'Even match — no strokes given',strokes:0};
   const receiver=t1CH>t2CH?t1Team:t2Team;
-  const names=receiver.p1.split(' ')[0]+' and '+receiver.p2.split(' ')[0];
-  return{text:names+' get '+diff+' stroke'+(diff!==1?'s':''),strokes:diff};
+  return{text:receiver.name+' get'+(receiver.name.endsWith('s')?'':'s')+' '+diff+' stroke'+(diff!==1?'s':''),strokes:diff};
 }
 
 // ── Match Cards ──
