@@ -932,7 +932,7 @@
       </div>
 
       <!-- League Score Entry FAB -->
-      <div class="score-entry-fab" id="lgScorerFab" style="display:none" onclick="openLgScorerModal()">
+      <button class="score-entry-fab" id="lgScorerFab" style="display:none" onclick="openLgScorerModal()"><span class="fab-dot"></span>
         <div class="fab-dot"></div> Enter Scores
       </div>
 
@@ -949,7 +949,7 @@
       <div class="modal-sheet" style="max-width:480px">
         <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
           <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--cream)">Enter Scores</div>
-          <button class="admin-close" onclick="document.getElementById('lgScorerModal').classList.remove('show')">✕</button>
+          <button class="admin-close" onclick="document.getElementById('lgScorerModal').classList.remove('open')">✕</button>
         </div>
         <div id="lgScorerContent"></div>
       </div>
@@ -2013,6 +2013,7 @@ document.getElementById('teamModal').addEventListener('click',function(e){if(e.t
 document.getElementById('skinsModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
   document.getElementById('historyRoundModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
   document.getElementById('infoModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
+  document.getElementById('lgScorerModal').addEventListener('click',function(e){if(e.target===this)this.classList.remove('open')});
 
 /* ═══ COLLAPSIBLE SECTIONS ═══ */
 document.querySelectorAll('.section-head.collapsible').forEach(head=>{
@@ -2709,10 +2710,16 @@ function initModeSwitcher(){
         document.getElementById('lgScorerFab').style.display='none';
         document.getElementById('lgAdminFab').style.display='none';
         document.getElementById('lgAdminPanel').style.display='none';
-        // Restore invitational elements
+        // Restore all invitational elements
         document.getElementById('mainHeader').style.display='';
         document.getElementById('siteFooter').style.display='';
         document.querySelectorAll('.controls').forEach(el=>el.style.display='flex');
+        if(availableYears.length>1)document.getElementById('yearControls').style.display='flex';
+        document.querySelectorAll('#individualSection,#historySection,#coursesSection,#hcSection').forEach(el=>el.style.display='block');
+        if(teamMode){document.getElementById('teamSection').style.display='block';document.getElementById('chartSection').style.display='block'}
+        document.getElementById('recordsLinkWrap').style.display='block';
+        document.getElementById('scoreEntryFab').style.display='flex';
+        if(infoTabs.length)document.getElementById('infoTabsWrap').style.display='flex';
         stopLgPolling();
         lastCSV='';load();
       }
@@ -2867,8 +2874,7 @@ function renderLgHandicaps(){
   let hdr='<tr><th class="hc-name" style="text-align:left">Player</th>';
   for(let r=1;r<=maxR;r++){
     const roundMatches=lgMatches.filter(m=>m.round===r);
-    const courseName=roundMatches.length&&roundMatches[0].course?roundMatches[0].course:'R'+r;
-    hdr+=`<th class="hc-val" style="font-size:0.6rem">${esc(courseName)}</th>`;
+    hdr+=`<th class="hc-val">R${r}</th>`;
   }
   hdr+='</tr>';
   document.getElementById('lgHcHead').innerHTML=hdr;
@@ -3081,7 +3087,7 @@ function openLgTeamModal(label){
 
   // Show in the existing modal
   document.getElementById('modalBody').innerHTML=h;
-  document.getElementById('playerModal').classList.add('show');
+  document.getElementById('playerModal').classList.add('open');document.querySelector('#playerModal .modal-sheet').scrollTop=0;
 }
 
 // ── League Admin ──
@@ -3335,7 +3341,7 @@ function openLgScorerModal(){
 function lgScorerAuthenticated(){
   const c=document.getElementById('lgScorerContent');
   renderLgAdminScores(c);
-  document.getElementById('lgScorerModal').classList.add('show');
+  document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
 }
 
   </script>
