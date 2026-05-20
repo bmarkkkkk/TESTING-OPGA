@@ -3162,6 +3162,7 @@ async function renderLgRecordsPage(){
   }
   const playerList=Object.entries(playerMap).sort((a,b)=>b[1].championships-a[1].championships||b[1].seasons-a[1].seasons||a[1].bestNetNtp-b[1].bestNetNtp);
   if(playerList.length){
+    h+=`<div class="card">`;
     for(const[name,ps] of playerList){
       const badges=[];
       if(ps.championships)badges.push(`<span class="ph-badge ph-badge-champ">${ps.championships}× Champion</span>`);
@@ -3305,7 +3306,8 @@ function renderLgStandings(){
   displayStats.forEach((s,i)=>{
     const ntpStr=s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp));
     const ntpColor=s.ntp<0?'var(--under-par)':s.ntp>0?'var(--over-par)':'var(--even-par)';
-    h+=`<div class="lg-standings-row${i===0&&s.won>0?' rank-1':''}" onclick="openLgTeamModal('${s.label}')">
+    const lgAllComplete=!isRound&&lgTeams.length>0&&displayStats.every(s=>s.played>=(lgTeams.length-1))&&(lgTeams.length-1)>0;
+    h+=`<div class="lg-standings-row${i===0&&lgAllComplete?' rank-1':''}" onclick="openLgTeamModal('${s.label}')">
       <div class="rank">${i+1}</div>
       <div><div class="team-nm">${esc(s.name)}</div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
       <div class="stat">${s.won}</div><div class="stat">${s.lost}</div><div class="stat">${s.halved}</div><div class="stat" style="font-size:0.75rem;color:${ntpColor};${s.ntp<0?'font-weight:700':''}">${ntpStr}</div>
@@ -3446,7 +3448,7 @@ function openLgTeamModal(label){
     // Header row
     h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
       <div><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold)">Round ${m.round}</div>
-      <div style="font-size:0.72rem;color:var(--cream);margin-top:2px">vs ${esc(oppName)}</div></div>
+      <div style="font-size:0.72rem;color:var(--cream);margin-top:2px">vs ${esc(oppName)}</div>${m.course?`<div style="font-size:0.62rem;color:var(--text-muted);margin-top:1px">${esc(m.course)}</div>`:''}</div>
       <div style="text-align:right"><div style="font-weight:700;font-size:1.1rem;color:${resultColor}">${hasScores?myW+' — '+oppW:''}</div>
       <div style="font-size:0.6rem;color:${resultColor}">${resultText}</div></div>
     </div>`;
