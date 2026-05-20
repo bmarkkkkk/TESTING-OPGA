@@ -120,6 +120,7 @@
     .lg-standings-row.header .stat-lbl { text-align:center; }
     @media(hover:hover){.lg-standings-row.header:hover { background:transparent; }}
     .lg-standings-row .rank { font-family:'Outfit',sans-serif; font-weight:700; font-size:0.85rem; color:var(--text-muted); text-align:center; }
+    .lg-standings-row.rank-1 { border-left:3px solid var(--gold); box-shadow:inset 3px 0 8px -3px rgba(201,168,76,0.15); }
     .lg-standings-row .team-nm { font-family:'Outfit',sans-serif; font-weight:600; font-size:0.88rem; color:var(--cream); }
     .lg-standings-row .team-sub { font-size:0.62rem; color:var(--text-muted); margin-top:1px; }
     .lg-standings-row .stat { font-family:'Outfit',sans-serif; font-weight:600; font-size:0.82rem; color:var(--cream); text-align:center; min-width:32px; }
@@ -438,7 +439,7 @@
     .records-link:hover { background:rgba(245,240,232,0.08); color:var(--text-primary); }
 
     /* Records Page */
-    .records-header { text-align:center; margin-bottom:24px; }
+    .records-header { text-align:center; margin-bottom:24px; padding-top:0; }
     .records-back { display:inline-block; font-size:0.72rem; font-weight:500; color:var(--text-secondary); cursor:pointer; margin-bottom:16px; padding:5px 14px; border:1px solid var(--border); border-radius:var(--radius-sm); background:rgba(245,240,232,0.04); transition:all var(--transition); }
     .records-back:hover { background:rgba(245,240,232,0.08); color:var(--text-primary); }
     .records-title { font-family:'Cormorant Garamond',serif; font-weight:700; font-size:1.8rem; color:var(--cream); margin:4px 0; }
@@ -951,9 +952,7 @@
       </div>
 
       <!-- League Score Entry FAB -->
-      <button class="score-entry-fab" id="lgScorerFab" style="display:none" onclick="openLgScorerModal()"><span class="fab-dot"></span>
-        <div class="fab-dot"></div> Enter Scores
-      </div>
+      <button class="score-entry-fab" id="lgScorerFab" style="display:none" onclick="openLgScorerModal()"><span class="fab-dot"></span> Enter Scores</button>
 
       <!-- League Admin FAB -->
       <div class="admin-fab" id="lgAdminFab" style="display:none" onclick="openLgAdmin()">⚙</div>
@@ -2962,6 +2961,7 @@ function renderLgHandicaps(){
 
 function renderLgChampion(){
   const banner=document.getElementById('lgChampBanner');
+  banner.style.display='';
   if(lgCurrentView!=='league'){banner.classList.remove('show');return}
   const standings=lgCalcStandings();
   const totalMatches=lgTeams.length>0?(lgTeams.length-1):0;
@@ -3305,7 +3305,7 @@ function renderLgStandings(){
   displayStats.forEach((s,i)=>{
     const ntpStr=s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp));
     const ntpColor=s.ntp<0?'var(--under-par)':s.ntp>0?'var(--over-par)':'var(--even-par)';
-    h+=`<div class="lg-standings-row" onclick="openLgTeamModal('${s.label}')">
+    h+=`<div class="lg-standings-row${i===0&&s.won>0?' rank-1':''}" onclick="openLgTeamModal('${s.label}')">
       <div class="rank">${i+1}</div>
       <div><div class="team-nm">${esc(s.name)}</div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
       <div class="stat">${s.won}</div><div class="stat">${s.lost}</div><div class="stat">${s.halved}</div><div class="stat" style="font-size:0.75rem;color:${ntpColor};${s.ntp<0?'font-weight:700':''}">${ntpStr}</div>
@@ -3370,7 +3370,7 @@ function renderLgMatches(){
         const t1Team=lgTeamByLabel(m.t1);const t2Team=lgTeamByLabel(m.t2);
         if(t1Team&&t2Team){
           h+=`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">`;
-          h+=`<div class="lg-player-row header"><div>Player</div><div style="text-align:center">HI</div><div style="text-align:center">CH</div><div style="text-align:center">Gross</div><div style="text-align:center">NTP</div></div>`;
+          h+=`<div class="lg-player-row header"><div style="text-align:left">Player</div><div class="lg-player-stat">HI</div><div class="lg-player-stat">CH</div><div class="lg-player-stat">Gross</div><div class="lg-player-stat">NTP</div></div>`;
           const rIdx=m.round-1;
           const allP=[
             {name:t1Team.p1,hi:t1Team.p1hi[rIdx]||0,f:m.p1f,b:m.p1b,team:t1Name},
