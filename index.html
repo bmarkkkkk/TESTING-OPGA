@@ -111,12 +111,13 @@
     #leaguePage { display:none; }
     #leaguePage.show { display:block; }
     .league-header { text-align:center; padding:36px 0 20px; }
-    .league-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:700; color:var(--cream); margin:0 0 4px; }
+    .league-header h1 { font-family:'Cormorant Garamond',serif; font-size:2.2rem; font-weight:700; color:var(--cream); margin:0 0 4px; }
     .league-header-sub { font-size:0.72rem; color:var(--text-muted); }
 
     .lg-standings-row { display:grid; grid-template-columns:28px 1fr repeat(4,minmax(32px,auto)); align-items:center; gap:8px; padding:12px 14px; cursor:pointer; transition:background var(--transition); }
     @media(hover:hover){.lg-standings-row:hover { background:var(--surface-1); }}
     .lg-standings-row.header { cursor:default; padding:8px 14px; border-bottom:1px solid var(--border); }
+    .lg-standings-row.header .stat-lbl { text-align:center; }
     @media(hover:hover){.lg-standings-row.header:hover { background:transparent; }}
     .lg-standings-row .rank { font-family:'Outfit',sans-serif; font-weight:700; font-size:0.85rem; color:var(--text-muted); text-align:center; }
     .lg-standings-row .team-nm { font-family:'Outfit',sans-serif; font-weight:600; font-size:0.88rem; color:var(--cream); }
@@ -137,6 +138,7 @@
 
     .lg-player-row { display:grid; grid-template-columns:1fr auto auto auto auto; gap:6px; padding:6px 0; font-size:0.75rem; align-items:center; }
     .lg-player-row.header { font-size:0.6rem; font-weight:600; letter-spacing:0.06em; text-transform:uppercase; color:var(--text-muted); border-bottom:1px solid var(--border); padding-bottom:4px; margin-bottom:2px; }
+    .lg-player-row.header div:not(:first-child) { text-align:center; }
     .lg-player-name { font-weight:600; color:var(--cream); }
     .lg-player-stat { text-align:center; color:var(--text-secondary); min-width:36px; }
 
@@ -917,14 +919,6 @@
 
 
 
-      <!-- League Charts -->
-      <div class="section" id="lgChartSection">
-        <div class="section-head">
-          <span class="section-title" id="lgChartTitle">Match Play Results</span>
-          <span class="section-line"></span>
-        </div>
-        <div class="card" style="padding:16px"><canvas id="lgChart" height="200"></canvas></div>
-      </div>
 
       <!-- League Handicaps -->
       <div class="section" id="lgHcSection">
@@ -2760,7 +2754,6 @@ function initModeSwitcher(){
         document.getElementById('recordsLinkWrap').style.display='block';
         document.getElementById('scoreEntryFab').style.display='flex';
         if(infoTabs.length)document.getElementById('infoTabsWrap').style.display='flex';
-        if(lgChartInstance){lgChartInstance.destroy();lgChartInstance=null}
         stopLgPolling();
         lastCSV='';load();
       }
@@ -2908,70 +2901,6 @@ function renderLgViewControls(){
 
 
 
-let lgChartInstance=null;
-function renderLgChart(){
-  const section=document.getElementById('lgChartSection');
-  if(!lgTeams.length||!lgMatches.some(m=>lgMatchHasScores(m))){section.style.display='none';return}
-  section.style.display='block';
-  const isRound=lgCurrentView.startsWith('R');
-  const rn=isRound?parseInt(lgCurrentView.slice(1)):0;
-  const matchesToUse=isRound?lgMatches.filter(m=>m.round===rn):lgMatches;
-
-  if(isRound){
-    // Round view: show match results as bar chart
-    document.getElementById('lgChartTitle').textContent='Round '+rn+' Match Results';
-    const labels=[];const t1Data=[];const t2Data=[];const bgColors1=[];const bgColors2=[];
-    for(const m of matchesToUse){
-      if(!lgMatchHasScores(m))continue;
-      const t1w=m.t1fw+m.t1bw;const t2w=m.t2fw+m.t2bw;
-      labels.push(lgTeamName(m.t1)+' vs '+lgTeamName(m.t2));
-      t1Data.push(t1w);t2Data.push(t2w);
-      bgColors1.push(t1w>t2w?'rgba(218,165,32,0.7)':'rgba(245,240,208,0.4)');
-      bgColors2.push(t2w>t1w?'rgba(218,165,32,0.7)':'rgba(245,240,208,0.4)');
-    }
-    if(!labels.length){section.style.display='none';return}
-    if(lgChartInstance)lgChartInstance.destroy();
-    lgChartInstance=new Chart(document.getElementById('lgChart'),{
-      type:'bar',
-      data:{labels,datasets:[
-        {label:'Team 1',data:t1Data,backgroundColor:bgColors1,borderRadius:4},
-        {label:'Team 2',data:t2Data,backgroundColor:bgColors2,borderRadius:4}
-      ]},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false}},
-        scales:{y:{beginAtZero:true,max:18,ticks:{color:'rgba(245,240,232,0.4)',stepSize:3},grid:{color:'rgba(245,240,232,0.06)'}},
-          x:{ticks:{color:'rgba(245,240,232,0.5)',font:{size:10}},grid:{display:false}}}}
-    });
-  }else{
-    // League view: holes won per team across rounds
-    document.getElementById('lgChartTitle').textContent='Cumulative Holes Won';
-    const teamLabels=lgTeams.map(t=>t.name);
-    const maxR=lgTotalRounds();
-    const roundLabels=[];for(let r=1;r<=maxR;r++)roundLabels.push('R'+r);
-    const colors=['#e74c3c','#3498db','#f1c40f','#e67e22','#9b59b6','#1abc9c','#ff69b4','#dfe6e9'];
-    const datasets=lgTeams.map((t,ti)=>{
-      let cumulative=0;
-      const data=[];
-      for(let r=1;r<=maxR;r++){
-        const teamMatches=lgMatches.filter(m=>m.round===r&&(m.t1===t.label||m.t2===t.label));
-        for(const m of teamMatches){
-          if(!lgMatchHasScores(m))continue;
-          cumulative+=(m.t1===t.label)?(m.t1fw+m.t1bw):(m.t2fw+m.t2bw);
-        }
-        data.push(cumulative);
-      }
-      return{label:t.name,data,borderColor:colors[ti%colors.length],backgroundColor:'transparent',borderWidth:2,pointRadius:4,pointBackgroundColor:colors[ti%colors.length],tension:0.2};
-    });
-    if(lgChartInstance)lgChartInstance.destroy();
-    lgChartInstance=new Chart(document.getElementById('lgChart'),{
-      type:'line',
-      data:{labels:roundLabels,datasets},
-      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'rgba(245,240,232,0.6)',font:{family:'Outfit',size:11}}}},
-        scales:{y:{beginAtZero:true,ticks:{color:'rgba(245,240,232,0.4)',stepSize:5},grid:{color:'rgba(245,240,232,0.06)'}},
-          x:{ticks:{color:'rgba(245,240,232,0.5)'},grid:{display:false}}}}
-    });
-  }
-}
-
 function renderLgHandicaps(){
   if(!lgTeams.length){document.getElementById('lgHcSection').style.display='none';return}
   document.getElementById('lgHcSection').style.display='block';
@@ -3053,7 +2982,6 @@ function renderLeague(){
   renderLgChampion();
   renderLgStandings();
   renderLgMatches();
-  renderLgChart();
   renderLgHandicaps();
 }
 
@@ -3122,20 +3050,26 @@ function renderLgMatches(){
     </div>`;
 
     if(hasScores){
-      const t1Col=t1w>t2w?'var(--under-par)':t1w<t2w?'var(--over-par)':'var(--even-par)';
-      const t2Col=t2w>t1w?'var(--under-par)':t2w<t1w?'var(--over-par)':'var(--even-par)';
-      h+=`<div style="display:grid;grid-template-columns:1fr auto 1fr;gap:8px;align-items:center;text-align:center;margin-bottom:10px">
-        <div class="lg-match-score" style="color:${t1Col}">${t1w}</div>
-        <div style="font-size:0.6rem;color:var(--text-muted)">holes won</div>
-        <div class="lg-match-score" style="color:${t2Col}">${t2w}</div>
-      </div>`;
-
-      h+=`<div class="lg-match-detail">
-        <div class="lg-match-detail-header"></div><div class="lg-match-detail-header">Front</div><div class="lg-match-detail-header">Back</div>
-        <div style="text-align:left;font-size:0.65rem;color:var(--cream)">${esc(t1Name)}</div><div>${m.t1fw}</div><div>${m.t1bw}</div>
-        <div style="text-align:left;font-size:0.65rem;color:var(--cream)">${esc(t2Name)}</div><div>${m.t2fw}</div><div>${m.t2bw}</div>
-        <div style="text-align:left;font-size:0.65rem">Halved</div><div>${frontHalved}</div><div>${backHalved}</div>
-      </div>`;
+      const t1Won=t1w>t2w;const t2Won=t2w>t1w;const tied=t1w===t2w;
+      const t1Col=t1Won?'var(--under-par)':'var(--text-muted)';
+      const t2Col=t2Won?'var(--under-par)':'var(--text-muted)';
+      const t1Wt=t1Won?'font-weight:700':'';const t2Wt=t2Won?'font-weight:700':'';
+      const tieCol=tied?'var(--even-par)':'';
+      if(tied){
+        h+=`<div style="text-align:center;margin-bottom:10px"><div class="lg-match-score" style="color:var(--even-par)">${t1w} — ${t2w}</div><div style="font-size:0.6rem;color:var(--text-muted)">All square</div></div>`;
+      }else{
+        const winName=t1Won?t1Name:t2Name;const winW=t1Won?t1w:t2w;const loseW=t1Won?t2w:t1w;
+        h+=`<div style="text-align:center;margin-bottom:10px"><div class="lg-match-score" style="color:var(--under-par);font-weight:700">${winW} — ${loseW}</div><div style="font-size:0.6rem;color:var(--text-muted)">${esc(winName)} win${winName.endsWith('s')?'':'s'}</div></div>`;
+      }
+      // Front/back breakdown
+      h+=`<div style="display:grid;grid-template-columns:1fr auto auto auto;gap:2px 12px;font-size:0.68rem;align-items:center">`;
+      h+=`<div></div><div style="text-align:center;font-size:0.58rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">FRONT</div><div style="text-align:center;font-size:0.58rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">BACK</div><div style="text-align:center;font-size:0.58rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">TOTAL</div>`;
+      const t1fWon=m.t1fw>m.t2fw;const t1bWon=m.t1bw>m.t2bw;
+      const t2fWon=m.t2fw>m.t1fw;const t2bWon=m.t2bw>m.t1bw;
+      h+=`<div style="color:var(--cream);font-weight:600">${esc(t1Name)}</div><div style="text-align:center;color:${t1fWon?'var(--under-par)':'var(--text-muted)'};${t1fWon?'font-weight:700':''}">${m.t1fw}</div><div style="text-align:center;color:${t1bWon?'var(--under-par)':'var(--text-muted)'};${t1bWon?'font-weight:700':''}">${m.t1bw}</div><div style="text-align:center;color:${t1Col};${t1Wt}">${t1w}</div>`;
+      h+=`<div style="color:var(--cream);font-weight:600">${esc(t2Name)}</div><div style="text-align:center;color:${t2fWon?'var(--under-par)':'var(--text-muted)'};${t2fWon?'font-weight:700':''}">${m.t2fw}</div><div style="text-align:center;color:${t2bWon?'var(--under-par)':'var(--text-muted)'};${t2bWon?'font-weight:700':''}">${m.t2bw}</div><div style="text-align:center;color:${t2Col};${t2Wt}">${t2w}</div>`;
+      h+=`<div style="color:var(--text-muted)">Halved</div><div style="text-align:center;color:var(--text-muted)">${frontHalved}</div><div style="text-align:center;color:var(--text-muted)">${backHalved}</div><div style="text-align:center;color:var(--text-muted)">${frontHalved+backHalved}</div>`;
+      h+=`</div>`;
 
       // Player scores for round view
       if(isRound){
@@ -3180,14 +3114,24 @@ function openLgTeamModal(label){
   const team=lgTeamByLabel(label);if(!team)return;
   const teamMatches=lgMatches.filter(m=>m.t1===label||m.t2===label);
   const standings=lgCalcStandings();const teamStats=standings.find(s=>s.label===label);
+  const rank=standings.findIndex(s=>s.label===label)+1;
 
-  let h=`<div class="modal-header"><div class="modal-name">${esc(team.name)}</div><div class="modal-team">${esc(team.p1)} & ${esc(team.p2)}</div></div>`;
+  let h=`<div style="text-align:center;margin-bottom:16px">
+    <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.4rem;color:var(--cream)">${esc(team.name)}</div>
+    <div style="font-size:0.72rem;color:var(--text-muted)">${esc(team.p1)} & ${esc(team.p2)}</div>
+  </div>`;
 
   if(teamStats){
-    h+=`<div class="modal-stats" style="margin-bottom:16px">
-      <div class="modal-stat"><div class="modal-stat-label">Won</div><div class="modal-stat-val">${teamStats.won}</div></div>
-      <div class="modal-stat"><div class="modal-stat-label">Lost</div><div class="modal-stat-val">${teamStats.lost}</div></div>
-      <div class="modal-stat"><div class="modal-stat-label">Halved</div><div class="modal-stat-val">${teamStats.halved}</div></div>
+    const record=teamMatches.filter(m=>lgMatchHasScores(m));
+    const wins=record.filter(m=>{const isT1=m.t1===label;const myW=isT1?(m.t1fw+m.t1bw):(m.t2fw+m.t2bw);const oppW=isT1?(m.t2fw+m.t2bw):(m.t1fw+m.t1bw);return myW>oppW}).length;
+    const losses=record.filter(m=>{const isT1=m.t1===label;const myW=isT1?(m.t1fw+m.t1bw):(m.t2fw+m.t2bw);const oppW=isT1?(m.t2fw+m.t2bw):(m.t1fw+m.t1bw);return myW<oppW}).length;
+    const draws=record.length-wins-losses;
+    const recordStr=wins+'-'+losses+(draws>0?'-'+draws:'');
+    h+=`<div style="display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:20px">
+      <div style="text-align:center"><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Record</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:var(--cream);margin-top:2px">${recordStr}</div></div>
+      <div style="text-align:center"><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Holes Won</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:var(--under-par);margin-top:2px">${teamStats.won}</div></div>
+      <div style="text-align:center"><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Holes Lost</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:var(--over-par);margin-top:2px">${teamStats.lost}</div></div>
+      <div style="text-align:center"><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted)">Halved</div><div style="font-family:'Outfit',sans-serif;font-weight:700;font-size:1rem;color:var(--even-par);margin-top:2px">${teamStats.halved}</div></div>
     </div>`;
   }
 
@@ -3196,47 +3140,61 @@ function openLgTeamModal(label){
     const oppLabel=isT1?m.t2:m.t1;const oppName=lgTeamName(oppLabel);
     const myW=isT1?(m.t1fw+m.t1bw):(m.t2fw+m.t2bw);
     const oppW=isT1?(m.t2fw+m.t2bw):(m.t1fw+m.t1bw);
+    const myFW=isT1?m.t1fw:m.t2fw;const myBW=isT1?m.t1bw:m.t2bw;
+    const oppFW=isT1?m.t2fw:m.t1fw;const oppBW=isT1?m.t2bw:m.t1bw;
     const hasScores=lgMatchHasScores(m);
-    const result=hasScores?(myW>oppW?'Won':'Lost'):'—';
-    const resultColor=myW>oppW?'var(--under-par)':myW<oppW?'var(--over-par)':'var(--even-par)';
+    const won=myW>oppW;const lost=myW<oppW;const drew=myW===oppW;
+    const resultText=hasScores?(won?'Won':lost?'Lost':'Draw'):'Upcoming';
+    const resultColor=won?'var(--under-par)':lost?'var(--over-par)':'var(--even-par)';
+    const borderColor=won?'rgba(218,165,32,0.3)':lost?'rgba(245,240,208,0.15)':'rgba(107,179,217,0.2)';
 
-    h+=`<div style="background:var(--surface-1);border:1px solid var(--border);border-radius:var(--radius);padding:12px;margin-bottom:8px">`;
-    h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:6px">
-      <div style="font-size:0.6rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold)">Round ${m.round}</div>
-      <div style="font-size:0.65rem;color:var(--text-muted)">${m.course?esc(m.course):'TBD'}</div>
-    </div>`;
-    h+=`<div style="display:flex;justify-content:space-between;align-items:center">
-      <div style="font-size:0.82rem;color:var(--cream)">vs ${esc(oppName)}</div>
-      <div style="font-weight:700;color:${resultColor}">${hasScores?myW+' - '+oppW:''}</div>
+    h+=`<div style="background:var(--surface-1);border:1px solid ${borderColor};border-radius:var(--radius);padding:14px;margin-bottom:10px">`;
+    // Header row
+    h+=`<div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+      <div><div style="font-size:0.58rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--gold)">Round ${m.round}</div>
+      <div style="font-size:0.72rem;color:var(--cream);margin-top:2px">vs ${esc(oppName)}</div></div>
+      <div style="text-align:right"><div style="font-weight:700;font-size:1.1rem;color:${resultColor}">${hasScores?myW+' — '+oppW:''}</div>
+      <div style="font-size:0.6rem;color:${resultColor}">${resultText}</div></div>
     </div>`;
 
     if(hasScores){
+      // Front/back breakdown
+      h+=`<div style="display:grid;grid-template-columns:auto 1fr 1fr 1fr;gap:2px 10px;font-size:0.68rem;margin-bottom:10px;padding:8px;background:rgba(0,0,0,0.15);border-radius:6px">`;
+      h+=`<div></div><div style="text-align:center;font-size:0.55rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">FRONT</div><div style="text-align:center;font-size:0.55rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">BACK</div><div style="text-align:center;font-size:0.55rem;font-weight:600;letter-spacing:0.06em;color:var(--text-muted)">TOTAL</div>`;
+      h+=`<div style="color:var(--cream);font-weight:600">${esc(team.name)}</div><div style="text-align:center;color:${myFW>oppFW?'var(--under-par);font-weight:700':'var(--text-muted)'}">${myFW}</div><div style="text-align:center;color:${myBW>oppBW?'var(--under-par);font-weight:700':'var(--text-muted)'}">${myBW}</div><div style="text-align:center;color:${won?'var(--under-par);font-weight:700':'var(--text-muted)'}">${myW}</div>`;
+      h+=`<div style="color:var(--text-muted)">${esc(oppName)}</div><div style="text-align:center;color:${oppFW>myFW?'var(--under-par);font-weight:700':'var(--text-muted)'}">${oppFW}</div><div style="text-align:center;color:${oppBW>myBW?'var(--under-par);font-weight:700':'var(--text-muted)'}">${oppBW}</div><div style="text-align:center;color:${lost?'var(--under-par);font-weight:700':'var(--text-muted)'}">${oppW}</div>`;
+      h+=`</div>`;
+
+      // Player scores
       const rIdx=m.round-1;
-      const myTeam=team;const oppTeam=lgTeamByLabel(oppLabel);
       const myPlayers=isT1?[
-        {name:myTeam.p1,hi:myTeam.p1hi[rIdx],f:m.p1f,b:m.p1b},
-        {name:myTeam.p2,hi:myTeam.p2hi[rIdx],f:m.p2f,b:m.p2b}
+        {name:team.p1,hi:team.p1hi[rIdx],f:m.p1f,b:m.p1b},
+        {name:team.p2,hi:team.p2hi[rIdx],f:m.p2f,b:m.p2b}
       ]:[
-        {name:myTeam.p1,hi:myTeam.p1hi[rIdx],f:m.p3f,b:m.p3b},
-        {name:myTeam.p2,hi:myTeam.p2hi[rIdx],f:m.p4f,b:m.p4b}
+        {name:team.p1,hi:team.p1hi[rIdx],f:m.p3f,b:m.p3b},
+        {name:team.p2,hi:team.p2hi[rIdx],f:m.p4f,b:m.p4b}
       ];
-      h+=`<div style="margin-top:8px;font-size:0.7rem">`;
       for(const p of myPlayers){
         const ch=m.course?lgGetCH(p.hi||0,m.course):0;
         const gross=p.f+p.b;const net=gross-ch;
         const crs2=courses[m.course];const ntp2=crs2?(net-crs2.par):0;
         const ntpC=ntp2<0?'var(--under-par)':ntp2>0?'var(--over-par)':'var(--even-par)';
-        h+=`<div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-secondary)">
-          <span>${esc(p.name)}</span>
-          <span>${p.f>0||p.b>0?gross+' gross / <span style="color:'+ntpC+';'+(ntp2<0?'font-weight:700':'')+'">'+ fmtPar(ntp2)+'</span>':'—'}</span>
+        const hasP=p.f>0||p.b>0;
+        h+=`<div style="display:flex;justify-content:space-between;align-items:center;padding:4px 0;font-size:0.72rem">
+          <div style="color:var(--cream);font-weight:600">${esc(p.name)}</div>
+          <div style="display:flex;gap:12px;align-items:center">
+            <span style="color:var(--text-muted);font-size:0.62rem">CH ${ch}</span>
+            <span style="color:var(--text-secondary)">${hasP?gross+' gross':''}</span>
+            <span style="color:${hasP?ntpC:'var(--text-muted)'};${hasP&&ntp2<0?'font-weight:700':''}">${hasP?fmtPar(ntp2):'—'}</span>
+          </div>
         </div>`;
       }
-      h+=`</div>`;
+    }else{
+      h+=`<div style="text-align:center;padding:4px 0;font-size:0.72rem;color:var(--text-muted)">${m.course?esc(m.course):'Course TBD'}</div>`;
     }
     h+=`</div>`;
   }
 
-  // Show in the existing modal
   document.getElementById('lgTeamModalContent').innerHTML=h;
   document.getElementById('lgTeamModal').classList.add('open');document.querySelector('#lgTeamModal .modal-sheet').scrollTop=0;
 }
@@ -3430,8 +3388,9 @@ async function saveLgSchedule(){
 }
 
 function renderLgAdminScores(c){
-  let h=`<div class="admin-section"><div class="admin-section-title">Scores — ${lgAdminYear}</div>
-  <div class="admin-section-sub">Enter holes won per nine and gross scores for each match.</div>`;
+  const yr=lgMode==='league'?lgCurrentYear:lgAdminYear;
+  let h=`<div class="admin-section"><div class="admin-section-title">Scores</div>
+  <div class="admin-section-sub">Scores auto-save on each field change.</div>`;
   for(const m of lgMatches){
     const t1Name=lgTeamName(m.t1);const t2Name=lgTeamName(m.t2);
     const t1Team=lgTeamByLabel(m.t1);const t2Team=lgTeamByLabel(m.t2);
@@ -3440,18 +3399,16 @@ function renderLgAdminScores(c){
         <div style="font-weight:600;color:var(--gold);font-size:0.65rem;letter-spacing:0.1em">ROUND ${m.round} — ${esc(t1Name)} vs ${esc(t2Name)}</div>
         <div style="font-size:0.6rem;color:var(--text-muted)">${m.course||'No course'}</div>
       </div>`;
-    // Holes won
     h+=`<div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:4px;font-weight:600">Holes Won</div>`;
     h+=`<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:4px 8px;font-size:0.72rem;align-items:center;margin-bottom:10px">
       <div></div><div style="text-align:center;font-size:0.58rem;color:var(--text-muted)">Front 9</div><div style="text-align:center;font-size:0.58rem;color:var(--text-muted)">Back 9</div>
       <div style="color:var(--cream);font-size:0.68rem">${esc(t1Name)}</div>
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="D" value="${m.t1fw||''}" style="text-align:center;padding:6px" />
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="F" value="${m.t1bw||''}" style="text-align:center;padding:6px" />
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="D" value="${m.t1fw||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="F" value="${m.t1bw||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />
       <div style="color:var(--cream);font-size:0.68rem">${esc(t2Name)}</div>
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="E" value="${m.t2fw||''}" style="text-align:center;padding:6px" />
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="G" value="${m.t2bw||''}" style="text-align:center;padding:6px" />
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="E" value="${m.t2fw||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="G" value="${m.t2bw||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />
     </div>`;
-    // Gross scores
     h+=`<div style="font-size:0.6rem;color:var(--text-muted);margin-bottom:4px;font-weight:600">Gross Scores (9-hole)</div>`;
     h+=`<div style="display:grid;grid-template-columns:auto 1fr 1fr;gap:4px 8px;font-size:0.72rem;align-items:center">
       <div></div><div style="text-align:center;font-size:0.58rem;color:var(--text-muted)">Front</div><div style="text-align:center;font-size:0.58rem;color:var(--text-muted)">Back</div>`;
@@ -3463,39 +3420,62 @@ function renderLgAdminScores(c){
     ];
     for(const p of pList){
       h+=`<div style="color:var(--cream);font-size:0.68rem">${esc(p.name)}</div>
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="${p.fcol}" value="${p.fv||''}" style="text-align:center;padding:6px" />
-      <input class="admin-input lg-sc" data-row="${m.row}" data-col="${p.bcol}" value="${p.bv||''}" style="text-align:center;padding:6px" />`;
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="${p.fcol}" value="${p.fv||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />
+      <input class="scorer-input lg-sc-auto" data-row="${m.row}" data-col="${p.bcol}" value="${p.bv||''}" style="text-align:center;padding:8px;font-size:1rem" type="text" inputmode="numeric" pattern="[0-9]*" maxlength="2" placeholder="—" />`;
     }
     h+=`</div></div>`;
   }
-  h+=`<button class="admin-btn" onclick="saveLgScores()" style="margin-top:12px">Save All Scores</button></div>`;
+  h+=`</div>`;
   c.innerHTML=h;
+  // Wire up auto-save on each input
+  c.querySelectorAll('.lg-sc-auto').forEach(inp=>{
+    inp.addEventListener('change',handleLgScoreInput);
+  });
 }
 
-async function saveLgScores(){
-  const tab='League Scores '+lgAdminYear;
-  const inputs=document.querySelectorAll('.lg-sc');
-  const batchCells=[];
-  inputs.forEach(inp=>{
-    const row=inp.dataset.row;const col=inp.dataset.col;
-    const val=parseInt(inp.value)||0;
-    batchCells.push({range:tab+'!'+col+row,values:[[val]]});
-  });
-  let ok=true;
-  for(const cell of batchCells){ok=await writeAdminToSheet(cell.range,cell.values)&&ok}
-  if(ok)showAdminToast('Scores saved');
-  lgLastCSV='';loadLgYear();
+async function handleLgScoreInput(e){
+  const inp=e.target;
+  const val=inp.value.replace(/\D/g,'').slice(0,2);
+  inp.value=val;
+  const row=inp.dataset.row;const col=inp.dataset.col;
+  const numVal=parseInt(val)||0;
+  const tab='League Scores '+lgCurrentYear;
+  const badge=inp.nextElementSibling;
+  try{
+    let ok=false;
+    if(APPS_SCRIPT_URL){
+      const res=await fetch(APPS_SCRIPT_URL,{method:'POST',headers:{'Content-Type':'text/plain'},body:JSON.stringify({action:'writeScore',pin:scorerPIN,year:lgCurrentYear,playerRow:parseInt(row),round:1,front:col==='H'||col==='J'||col==='L'||col==='N'?numVal:undefined,back:col==='I'||col==='K'||col==='M'||col==='O'?numVal:undefined})});
+      // Apps script won't work for league columns, use OAuth instead
+      ok=false;
+    }
+    if(gAuthToken){
+      const res=await fetch('https://sheets.googleapis.com/v4/spreadsheets/'+SHEET_ID+'/values/'+encodeURIComponent(tab+'!'+col+row)+'?valueInputOption=USER_ENTERED',{method:'PUT',headers:{'Authorization':'Bearer '+gAuthToken,'Content-Type':'application/json'},body:JSON.stringify({range:tab+'!'+col+row,values:[[numVal]]})});
+      ok=res.ok;
+    }
+    if(ok){
+      inp.classList.add('saved');inp.classList.remove('save-flash');void inp.offsetWidth;inp.classList.add('save-flash');
+    }else{
+      inp.classList.remove('saved');
+    }
+  }catch(err){
+    inp.classList.remove('saved');
+  }
+  lgLastCSV='';
 }
 
 // ── League Scorer Modal ──
 function openLgScorerModal(){
-  openPinModal('scorer',{title:'League Scores',sub:'Enter scorer PIN',onSuccess:lgScorerAuthenticated});
-}
-
-function lgScorerAuthenticated(){
-  const c=document.getElementById('lgScorerContent');
-  renderLgAdminScores(c);
-  document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
+  if(!gAuthToken){
+    openPinModal('scorer',{title:'League Scores',sub:'Enter scorer PIN',onSuccess:function(){
+      const c=document.getElementById('lgScorerContent');
+      renderLgAdminScores(c);
+      document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
+    }});
+  }else{
+    const c=document.getElementById('lgScorerContent');
+    renderLgAdminScores(c);
+    document.getElementById('lgScorerModal').classList.add('open');document.querySelector('#lgScorerModal .modal-sheet').scrollTop=0;
+  }
 }
 
   </script>
