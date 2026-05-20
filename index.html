@@ -2561,7 +2561,7 @@ async function init(){
   window._pollTimer=setInterval(load,POLL_SECONDS*1000);
   showScoreFAB();
   setupAdminHeaderBtn();
-  if(gAuthToken){openAdminPanel();showAdminToast('Signed in with Google')}
+  if(gAuthToken){if(window._authState==='league_auth'){setTimeout(()=>{document.querySelector('.mode-btn[data-mode="league"]').click();setTimeout(()=>{lgAdminAuthenticated();showAdminToast('Signed in with Google')},500)},200)}else{openAdminPanel();showAdminToast('Signed in with Google')}}
 }
 init();
 
@@ -2694,8 +2694,9 @@ async function saveInfoTab(){if(!adminInfoActiveTab){showAdminToast('No tab sele
 /* ═══ GOOGLE OAUTH ═══ */
 let googleClientId='181776945321-257almdmhts5sbgnj3a3q6p8bcn2dvat.apps.googleusercontent.com';
 const GOOGLE_SCOPE='https://www.googleapis.com/auth/spreadsheets';
+function startLgGoogleAuth(){const params=new URLSearchParams({client_id:googleClientId,redirect_uri:window.location.origin+window.location.pathname,response_type:'token',scope:GOOGLE_SCOPE,include_granted_scopes:'true',state:'league_auth'});window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString()}
 function startGoogleAuth(){const params=new URLSearchParams({client_id:googleClientId,redirect_uri:window.location.origin+window.location.pathname,response_type:'token',scope:GOOGLE_SCOPE,include_granted_scopes:'true',state:'admin_auth'});window.location.href='https://accounts.google.com/o/oauth2/v2/auth?'+params.toString()}
-function handleOAuthCallback(){const hash=window.location.hash;if(!hash||!hash.includes('access_token'))return;const params=new URLSearchParams(hash.slice(1));const token=params.get('access_token');const state=params.get('state');if(token&&state==='admin_auth'){gAuthToken=token;history.replaceState(null,'',window.location.pathname+window.location.search)}}
+function handleOAuthCallback(){const hash=window.location.hash;if(!hash||!hash.includes('access_token'))return;const params=new URLSearchParams(hash.slice(1));const token=params.get('access_token');const state=params.get('state');if(token&&(state==='admin_auth'||state==='league_auth')){gAuthToken=token;window._authState=state;history.replaceState(null,'',window.location.pathname+window.location.search)}}
 handleOAuthCallback();
 
 // ══════════════════════════════════════════════════════════════
@@ -3232,8 +3233,13 @@ function renderLgAdminTab(){
 }
 
 function renderLgAdminConfig(c){
+  const isAuth=!!gAuthToken;
   c.innerHTML=`<div class="admin-section">
     <div class="admin-section-title">League Configuration</div>
+    <div style="background:var(--surface-1);border:1px solid var(--border);border-radius:10px;padding:18px;margin-bottom:20px">
+      <div style="font-size:0.72rem;font-weight:600;letter-spacing:0.08em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">Google Account</div>
+      ${isAuth?`<div style="display:flex;align-items:center;gap:10px;flex-wrap:wrap"><span style="color:var(--green-300);font-size:0.85rem">✓ Connected</span><button class="admin-btn admin-btn-secondary admin-btn-sm" onclick="gAuthToken=null;renderLgAdminTab()">Sign Out</button></div>`:`<div style="font-size:0.82rem;color:var(--text-secondary);margin-bottom:12px">Sign in with Google to enable writing scores and managing the league.</div><button class="admin-btn admin-btn-primary" onclick="startLgGoogleAuth()">Sign in with Google</button>`}
+    </div>
     <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--text-muted)">League Name</label>
     <input class="admin-input" id="lgAdminName" value="${esc(lgName)}" style="margin-top:4px" /></div>
     <div style="margin-bottom:12px"><label style="font-size:0.7rem;color:var(--text-muted)">Years</label>
