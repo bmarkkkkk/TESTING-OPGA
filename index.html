@@ -895,8 +895,9 @@
       <div class="champion-banner" id="lgChampBanner" style="cursor:pointer">
         <div class="champion-label" id="lgChampLabel"></div>
         <div class="champion-team" id="lgChampTeam"></div>
-        <div class="champion-margin" id="lgChampMargin"></div>
         <div class="champion-individual" id="lgChampIndiv"></div>
+        <div class="champion-margin" id="lgChampMargin"></div>
+        <div id="lgChampStats" class="champion-accolades"></div>
       </div>
 
       <!-- League Standings -->
@@ -2983,7 +2984,7 @@ function renderLgChampion(){
     const diff=best.won-second.won;
     document.getElementById('lgChampMargin').textContent='Won by '+diff+' hole'+(diff!==1?'s':'')+' over '+second.name;
   }
-  document.getElementById('lgChampIndiv').textContent=best.won+' holes won, '+best.lost+' lost, '+best.halved+' halved';
+  document.getElementById('lgChampStats').textContent=best.won+' holes won, '+best.lost+' lost, '+best.halved+' halved';
   banner.classList.add('show');
   banner.onclick=()=>{if(tied.length===1)openLgTeamModal(best.label)};
 }
