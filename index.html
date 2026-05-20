@@ -2497,6 +2497,7 @@ async function init(){
   document.getElementById('recordsLink').addEventListener('click',showRecordsPage);
   document.getElementById('recordsBack').addEventListener('click',hideRecordsPage);
   initModeSwitcher();
+  checkLeagueExists();
   document.getElementById('championBanner').addEventListener('click',function(){const t=this.dataset.champTeam;if(t){openTeamModal(t);return}const p=this.dataset.champPlayer;if(p)openPlayerModal(p)});
   loadPINsFromConfig(configRows);
   await load();
