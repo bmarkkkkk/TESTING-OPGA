@@ -906,6 +906,21 @@
         <div id="lgMatches"></div>
       </div>
 
+
+      <!-- League Handicaps -->
+      <div class="section" id="lgHcSection">
+        <div class="section-head">
+          <span class="section-title">Course Handicaps</span>
+          <span class="section-line"></span>
+        </div>
+        <div class="card" style="overflow-x:auto">
+          <table class="hc-table">
+            <thead id="lgHcHead"><tr><th>Player</th></tr></thead>
+            <tbody id="lgHcBody"></tbody>
+          </table>
+        </div>
+      </div>
+
       <!-- League Admin -->
       <div class="admin-panel" id="lgAdminPanel" style="display:none">
         <div class="admin-header">
@@ -926,6 +941,18 @@
 
       <!-- League Footer -->
       <footer class="footer" id="lgFooter"></footer>
+    </div>
+
+
+    <!-- League Scorer Modal -->
+    <div class="modal-overlay" id="lgScorerModal">
+      <div class="modal-sheet" style="max-width:480px">
+        <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:16px">
+          <div style="font-family:'Cormorant Garamond',serif;font-weight:700;font-size:1.2rem;color:var(--cream)">Enter Scores</div>
+          <button class="admin-close" onclick="document.getElementById('lgScorerModal').classList.remove('show')">✕</button>
+        </div>
+        <div id="lgScorerContent"></div>
+      </div>
     </div>
 
     <!-- Records Page (hidden by default) -->
@@ -1245,7 +1272,7 @@ function isTournamentComplete(){
 }
 
 function render(){
-  if(recordsOpen)return;
+  if(recordsOpen||lgMode==='league')return;
   const anyScores=players.some(p=>Object.values(p.rounds).some(r=>r.front>0||r.back>0));
   if(anyScores){document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.remove('show');if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null};countdownDismissed=true}else if(currentView!=='tournament'){document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.remove('show')}else if(!countdownDismissed&&tournamentStartTime){const now=new Date();if(now>=tournamentStartTime){if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null}document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.add('show')}else{document.getElementById('countdownLive').classList.remove('show');startCountdown()}}else if(!tournamentStartTime){document.getElementById('countdownBanner').classList.remove('show');document.getElementById('countdownLive').classList.remove('show');if(countdownInterval){clearInterval(countdownInterval);countdownInterval=null}}
   // Show/hide team sections based on teamMode
@@ -2605,7 +2632,7 @@ async function loadSkins(){skinsData=[];skinsActive=false;try{const raw=await fe
 
 function getTeamSkinsTotals(roundFilter){const teams=[...new Set(players.map(p=>p.team).filter(Boolean))];if(teams.length<2)return null;const totals={};teams.forEach(t=>totals[t]=0);const data=roundFilter?skinsData.filter(s=>s.round===roundFilter):skinsData;for(const s of data){const s1t=[s.p1,s.p2].map(n=>players.find(p=>p.name===n)?.team).filter(Boolean);const s2t=[s.p3,s.p4].map(n=>players.find(p=>p.name===n)?.team).filter(Boolean);const t1team=s1t[0];const t2team=s2t[0];if(t1team)totals[t1team]=(totals[t1team]||0)+s.t1f+s.t1b;if(t2team)totals[t2team]=(totals[t2team]||0)+s.t2f+s.t2b}return totals}
 
-function renderSkinsSection(){const el=document.getElementById('skinsSection');const sum=document.getElementById('skinsSummary');if(document.getElementById('recordsPage').style.display==='block'){el.style.display='none';return}if(!teamMode||!skinsActive||!skinsData.length){el.style.display='none';return}const isRoundView=currentView!=='tournament';const roundNum=isRoundView?parseInt(currentView):null;const totals=getTeamSkinsTotals(roundNum);if(!totals){el.style.display='none';return}const allZero=Object.values(totals).every(v=>v===0);const teamNames=[...new Set(players.map(p=>p.team).filter(Boolean))];const teams=teamNames.map(t=>[t,totals[t]||0]);const total=teams.reduce((s,t)=>s+t[1],0);const diff=teams[0][1]-teams[1][1];const absDiff=Math.abs(diff);const leader=diff>0?teams[0][0]:diff<0?teams[1][0]:null;const pct=total>0?(teams[0][1]/total*100):50;const barColor=allZero?'transparent':absDiff===0?'var(--text-muted)':'var(--gold)';const allComplete=players.length>0&&players.every(p=>{const r=p.rounds[String(totalRounds)];return r&&r.front>0&&r.back>0});const isTournComplete=!isRoundView&&allComplete;const isRoundComplete=isRoundView&&players.length>0&&players.every(p=>{const r=p.rounds[String(roundNum)];return r&&r.front>0&&r.back>0});const isPlural=leader&&leader.endsWith('s');const verb=(isTournComplete||isRoundComplete)?(isPlural?'win by':'wins by'):(isPlural?'lead by':'leads by');el.style.display='block';let h='<div class="skins-team-row">';h+=`<div class="skins-team"><div class="skins-team-name">${esc(teams[0][0])}</div><div class="skins-team-count" style="color:${allZero?'var(--cream)':teams[0][1]>teams[1][1]?'var(--gold)':teams[0][1]<teams[1][1]?'var(--cream)':'var(--cream)'}">${allZero?'—':teams[0][1]}</div><div class="skins-team-label">skins</div></div>`;h+=`<div class="skins-vs">vs</div>`;h+=`<div class="skins-team"><div class="skins-team-name">${esc(teams[1][0])}</div><div class="skins-team-count" style="color:${allZero?'var(--cream)':teams[1][1]>teams[0][1]?'var(--gold)':teams[1][1]<teams[0][1]?'var(--cream)':'var(--cream)'}">${allZero?'—':teams[1][1]}</div><div class="skins-team-label">skins</div></div>`;h+='</div>';const hasMatchups=roundNum?skinsData.some(s=>s.round===roundNum&&(s.p1||s.p3)):skinsData.some(s=>s.p1||s.p3);const dollarDiff=absDiff*skinsPerSkin;const isComplete=(isTournComplete||isRoundComplete);const dollarText=skinsPerSkin>0&&absDiff>0?' ($'+dollarDiff+')':'';const label=allZero?(hasMatchups?'Matchups set — no scores yet':'Matchups not set yet'):diff===0?'Skins tied':(esc(leader)+' '+(isComplete?(isPlural?'won':'won'):verb)+' '+absDiff+' skin'+(absDiff!==1?'s':'')+dollarText);const leadColor=allZero?'var(--text-muted)':diff===0?'var(--text-muted)':isComplete?'var(--gold)':'var(--text-secondary)';h+=`<div class="skins-bar-wrap"><div class="skins-lead-text" style="color:${leadColor}">${label}</div><div class="skins-bar"><div class="skins-bar-fill" style="width:${pct}%;background:${barColor}"></div></div></div>`;if(skinsPerSkin>0&&!allZero){h+=`<div style="text-align:center;font-size:0.55rem;color:var(--text-muted);margin-top:4px">$${skinsPerSkin}/skin</div>`}h+=`<div class="skins-tap-hint">Tap for full skins breakdown</div>`;sum.innerHTML=h}
+function renderSkinsSection(){if(lgMode==='league')return;const el=document.getElementById('skinsSection');const sum=document.getElementById('skinsSummary');if(document.getElementById('recordsPage').style.display==='block'){el.style.display='none';return}if(!teamMode||!skinsActive||!skinsData.length){el.style.display='none';return}const isRoundView=currentView!=='tournament';const roundNum=isRoundView?parseInt(currentView):null;const totals=getTeamSkinsTotals(roundNum);if(!totals){el.style.display='none';return}const allZero=Object.values(totals).every(v=>v===0);const teamNames=[...new Set(players.map(p=>p.team).filter(Boolean))];const teams=teamNames.map(t=>[t,totals[t]||0]);const total=teams.reduce((s,t)=>s+t[1],0);const diff=teams[0][1]-teams[1][1];const absDiff=Math.abs(diff);const leader=diff>0?teams[0][0]:diff<0?teams[1][0]:null;const pct=total>0?(teams[0][1]/total*100):50;const barColor=allZero?'transparent':absDiff===0?'var(--text-muted)':'var(--gold)';const allComplete=players.length>0&&players.every(p=>{const r=p.rounds[String(totalRounds)];return r&&r.front>0&&r.back>0});const isTournComplete=!isRoundView&&allComplete;const isRoundComplete=isRoundView&&players.length>0&&players.every(p=>{const r=p.rounds[String(roundNum)];return r&&r.front>0&&r.back>0});const isPlural=leader&&leader.endsWith('s');const verb=(isTournComplete||isRoundComplete)?(isPlural?'win by':'wins by'):(isPlural?'lead by':'leads by');el.style.display='block';let h='<div class="skins-team-row">';h+=`<div class="skins-team"><div class="skins-team-name">${esc(teams[0][0])}</div><div class="skins-team-count" style="color:${allZero?'var(--cream)':teams[0][1]>teams[1][1]?'var(--gold)':teams[0][1]<teams[1][1]?'var(--cream)':'var(--cream)'}">${allZero?'—':teams[0][1]}</div><div class="skins-team-label">skins</div></div>`;h+=`<div class="skins-vs">vs</div>`;h+=`<div class="skins-team"><div class="skins-team-name">${esc(teams[1][0])}</div><div class="skins-team-count" style="color:${allZero?'var(--cream)':teams[1][1]>teams[0][1]?'var(--gold)':teams[1][1]<teams[0][1]?'var(--cream)':'var(--cream)'}">${allZero?'—':teams[1][1]}</div><div class="skins-team-label">skins</div></div>`;h+='</div>';const hasMatchups=roundNum?skinsData.some(s=>s.round===roundNum&&(s.p1||s.p3)):skinsData.some(s=>s.p1||s.p3);const dollarDiff=absDiff*skinsPerSkin;const isComplete=(isTournComplete||isRoundComplete);const dollarText=skinsPerSkin>0&&absDiff>0?' ($'+dollarDiff+')':'';const label=allZero?(hasMatchups?'Matchups set — no scores yet':'Matchups not set yet'):diff===0?'Skins tied':(esc(leader)+' '+(isComplete?(isPlural?'won':'won'):verb)+' '+absDiff+' skin'+(absDiff!==1?'s':'')+dollarText);const leadColor=allZero?'var(--text-muted)':diff===0?'var(--text-muted)':isComplete?'var(--gold)':'var(--text-secondary)';h+=`<div class="skins-bar-wrap"><div class="skins-lead-text" style="color:${leadColor}">${label}</div><div class="skins-bar"><div class="skins-bar-fill" style="width:${pct}%;background:${barColor}"></div></div></div>`;if(skinsPerSkin>0&&!allZero){h+=`<div style="text-align:center;font-size:0.55rem;color:var(--text-muted);margin-top:4px">$${skinsPerSkin}/skin</div>`}h+=`<div class="skins-tap-hint">Tap for full skins breakdown</div>`;sum.innerHTML=h}
 function getMatchStrokes(m,rn){const lps=[m.p1,m.p2].filter(Boolean).map(n=>players.find(p=>p.name===n));const rps=[m.p3,m.p4].filter(Boolean).map(n=>players.find(p=>p.name===n));const lCH=lps.reduce((s,p)=>s+(p?getCH(p.hi,rn):0),0);const rCH=rps.reduce((s,p)=>s+(p?getCH(p.hi,rn):0),0);const diff=Math.abs(lCH-rCH);if(diff===0)return{text:'Even match — no strokes given',strokes:0};const receiverPair=lCH>rCH?[m.p1,m.p2]:[m.p3,m.p4];const names=receiverPair.filter(Boolean).map(n=>n.split(' ')[0]);const receiver=names.length===2?names[0]+' and '+names[1]:names[0]||'Side';return{text:receiver+' get'+(names.length===1?'s':'')+' '+diff+' stroke'+(diff!==1?'s':''),strokes:diff}}
 function openSkinsModal(){if(!skinsData.length)return;const modal=document.getElementById('skinsModal');const body=document.getElementById('skinsModalBody');const teams=[...new Set(players.map(p=>p.team).filter(Boolean))];if(teams.length<2){body.innerHTML='<div style="padding:20px;text-align:center;color:var(--text-muted)">No team data</div>';modal.classList.add('open');return}const isRoundView=currentView!=='tournament';const roundNum=isRoundView?parseInt(currentView):null;const totals=getTeamSkinsTotals(roundNum);const tArr=teams.map(t=>[t,totals[t]||0]);const total=tArr.reduce((s,t)=>s+t[1],0);const diff=tArr[0][1]-tArr[1][1];const absDiff=Math.abs(diff);const leader=diff>0?tArr[0][0]:diff<0?tArr[1][0]:null;const allComplete=players.length>0&&players.every(p=>{const r=p.rounds[String(totalRounds)];return r&&r.front>0&&r.back>0});const isTournComplete=!isRoundView&&allComplete;const isRoundComplete=isRoundView&&players.length>0&&players.every(p=>{const r=p.rounds[String(roundNum)];return r&&r.front>0&&r.back>0});const isPlural=leader&&leader.endsWith('s');const verb=(isTournComplete||isRoundComplete)?(isPlural?'win by':'wins by'):(isPlural?'lead by':'leads by');let h=`<div style="text-align:center;font-size:0.62rem;font-weight:600;letter-spacing:0.1em;text-transform:uppercase;color:var(--text-muted);margin-bottom:12px">${isRoundView?'Round '+roundNum+' Skins':'Tournament Skins'}</div>`;h+='<div class="skins-team-row" style="margin-bottom:16px">';const mAllZero=total===0;h+=`<div class="skins-team"><div class="skins-team-name">${esc(tArr[0][0])}</div><div class="skins-team-count" style="color:${mAllZero?'var(--cream)':tArr[0][1]>tArr[1][1]?'var(--gold)':tArr[0][1]<tArr[1][1]?'var(--cream)':'var(--cream)'}">${mAllZero?'—':tArr[0][1]}</div><div class="skins-team-label">skins</div></div>`;h+=`<div class="skins-vs">vs</div>`;h+=`<div class="skins-team"><div class="skins-team-name">${esc(tArr[1][0])}</div><div class="skins-team-count" style="color:${mAllZero?'var(--cream)':tArr[1][1]>tArr[0][1]?'var(--gold)':tArr[1][1]<tArr[0][1]?'var(--cream)':'var(--cream)'}">${mAllZero?'—':tArr[1][1]}</div><div class="skins-team-label">skins</div></div>`;h+='</div>';const mDollarDiff=absDiff*skinsPerSkin;const mIsComplete=(isTournComplete||isRoundComplete);const mDollarText=skinsPerSkin>0&&absDiff>0?' ($'+mDollarDiff+')':'';if(mAllZero)h+=`<div class="skins-lead-text" style="color:var(--text-muted);margin-bottom:6px">Matchups set — no scores yet</div>`;else if(absDiff>0){const mLeadColor=mIsComplete?'var(--gold)':'var(--text-secondary)';h+=`<div class="skins-lead-text" style="color:${mLeadColor};margin-bottom:6px">${esc(leader)} ${mIsComplete?(isPlural?'won':'won'):verb} ${absDiff} skin${absDiff!==1?'s':''}${mDollarText}</div>`}else h+=`<div class="skins-lead-text" style="color:var(--text-muted);margin-bottom:6px">Tied</div>`;h+=`<div class="skins-bar" style="margin-bottom:4px"><div class="skins-bar-fill" style="width:${total>0?(tArr[0][1]/total*100):50}%;background:${mAllZero?'transparent':absDiff===0?'var(--text-muted)':'var(--gold)'}"></div></div>`;if(skinsPerSkin>0&&!mAllZero){h+=`<div style="text-align:center;font-size:0.55rem;color:var(--text-muted);margin-bottom:16px">$${skinsPerSkin}/skin</div>`}else{h+=`<div style="margin-bottom:16px"></div>`}const rounds=isRoundView?[roundNum]:[...new Set(skinsData.map(s=>s.round))].sort((a,b)=>a-b);for(const rn of rounds){const rMatches=skinsData.filter(s=>s.round===rn);if(!rMatches.length)continue;const cn=getCourseName(rn);let rT1=0,rT2=0;rMatches.forEach(m=>{const s1t=[m.p1,m.p2].map(n=>players.find(p=>p.name===n)?.team).filter(Boolean);const s1isT0=s1t.includes(teams[0]);if(s1isT0){rT1+=m.t1f+m.t1b;rT2+=m.t2f+m.t2b}else{rT2+=m.t1f+m.t1b;rT1+=m.t2f+m.t2b}});h+=`<div class="skins-round-card"><div class="skins-round-head"><div style="display:flex;align-items:center;gap:8px"><span style="background:var(--green-500);color:var(--cream);border-radius:6px;padding:3px 10px;font-size:0.72rem;font-weight:700">R${rn}</span><span style="font-size:0.8rem;color:var(--text-secondary)">${cn?esc(cn):''}</span></div><div style="display:flex;gap:14px;font-size:0.82rem;font-weight:700"><span style="color:${rT1>rT2?'var(--gold)':rT1<rT2?'var(--cream)':'var(--cream)'}">${rT1}</span><span style="color:${rT2>rT1?'var(--gold)':rT2<rT1?'var(--cream)':'var(--cream)'}">${rT2}</span></div></div><div class="skins-round-body">`;for(const m of rMatches){const side1Teams=[m.p1,m.p2].map(n=>players.find(p=>p.name===n)?.team).filter(Boolean);const side1IsTeam0=side1Teams.includes(teams[0]);const isFlipped=!side1IsTeam0;const leftPlayers=isFlipped?[m.p3,m.p4].filter(Boolean):[m.p1,m.p2].filter(Boolean);const rightPlayers=isFlipped?[m.p1,m.p2].filter(Boolean):[m.p3,m.p4].filter(Boolean);const lf=isFlipped?m.t2f:m.t1f;const lb=isFlipped?m.t2b:m.t1b;const rf=isFlipped?m.t1f:m.t2f;const rb=isFlipped?m.t1b:m.t2b;const lt=lf+lb;const rt=rf+rb;h+=`<div class="skins-match-title">Match ${m.match}</div>`;h+=`<div class="skins-match-players"><div>${leftPlayers.map(n=>`<div style="font-weight:500;color:var(--cream)">${esc(n)}</div>`).join('')}</div><div style="font-size:0.65rem;color:var(--text-muted);align-self:center;font-weight:600">vs</div><div style="text-align:right">${rightPlayers.map(n=>`<div style="font-weight:500;color:var(--cream)">${esc(n)}</div>`).join('')}</div></div>`;const mStrokes=getMatchStrokes(m,rn);h+=`<div style="text-align:center;font-size:0.7rem;color:var(--text-muted);font-style:italic;margin:4px 0 10px">${mStrokes.text}</div>`;h+=`<div class="skins-grid"><div class="skins-grid-head">${esc(teams[0])}</div><div></div><div class="skins-grid-head" style="text-align:right">${esc(teams[1])}</div>`;h+=`<div style="font-weight:700;color:${lf>rf?'var(--gold)':lf<rf?'var(--cream)':'var(--cream)'}">${lf}</div><div class="skins-grid-label">Front 9</div><div style="font-weight:700;text-align:right;color:${rf>lf?'var(--gold)':rf<lf?'var(--cream)':'var(--cream)'}">${rf}</div>`;h+=`<div style="font-weight:700;color:${lb>rb?'var(--gold)':lb<rb?'var(--cream)':'var(--cream)'}">${lb}</div><div class="skins-grid-label">Back 9</div><div style="font-weight:700;text-align:right;color:${rb>lb?'var(--gold)':rb<lb?'var(--cream)':'var(--cream)'}">${rb}</div>`;h+=`<div class="skins-grid-total" style="font-weight:700;color:${lt>rt?'var(--gold)':lt<rt?'var(--cream)':'var(--cream)'}">${lt}</div><div class="skins-grid-total skins-grid-label" style="font-weight:600">Total</div><div class="skins-grid-total" style="font-weight:700;text-align:right;color:${rt>lt?'var(--gold)':rt<lt?'var(--cream)':'var(--cream)'}">${rt}</div>`;h+=`</div>`}h+=`</div></div>`}body.innerHTML=h;modal.classList.add('open');modal.querySelector('.modal-sheet').scrollTop=0}
 /* ═══ SCORER SKINS MODE ═══ */
@@ -2666,7 +2693,11 @@ function initModeSwitcher(){
       btn.classList.add('active');
       lgMode=mode;
       if(mode==='league'){
-        document.querySelectorAll('#mainHeader,#yearControls,.controls,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,#courseInfoCard,.score-entry-fab:not(#lgScorerFab),.admin-fab:not(#lgAdminFab),#siteFooter').forEach(el=>{if(el)el.style.display='none'});
+        // Hide all invitational elements
+        document.querySelectorAll('#mainHeader,#yearControls,#courseInfoCard,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,#siteFooter').forEach(el=>{if(el)el.style.display='none'});
+        document.querySelectorAll('.controls').forEach(el=>el.style.display='none');
+        document.getElementById('scoreEntryFab').style.display='none';
+        const invAdminFab=document.querySelector('.admin-fab:not(#lgAdminFab)');if(invAdminFab)invAdminFab.style.display='none';
         document.getElementById('leaguePage').style.display='block';
         document.getElementById('lgScorerFab').style.display='';
         document.getElementById('lgAdminFab').style.display='';
@@ -2677,8 +2708,11 @@ function initModeSwitcher(){
         document.getElementById('leaguePage').style.display='none';
         document.getElementById('lgScorerFab').style.display='none';
         document.getElementById('lgAdminFab').style.display='none';
+        document.getElementById('lgAdminPanel').style.display='none';
+        // Restore invitational elements
         document.getElementById('mainHeader').style.display='';
         document.getElementById('siteFooter').style.display='';
+        document.querySelectorAll('.controls').forEach(el=>el.style.display='flex');
         stopLgPolling();
         lastCSV='';load();
       }
@@ -2824,11 +2858,49 @@ function renderLgViewControls(){
   });
 }
 
+
+function renderLgHandicaps(){
+  if(!lgTeams.length){document.getElementById('lgHcSection').style.display='none';return}
+  document.getElementById('lgHcSection').style.display='block';
+  const maxR=lgTotalRounds()||3;
+  // Build header
+  let hdr='<tr><th class="hc-name" style="text-align:left">Player</th>';
+  for(let r=1;r<=maxR;r++){
+    const roundMatches=lgMatches.filter(m=>m.round===r);
+    const courseName=roundMatches.length&&roundMatches[0].course?roundMatches[0].course:'R'+r;
+    hdr+=`<th class="hc-val" style="font-size:0.6rem">${esc(courseName)}</th>`;
+  }
+  hdr+='</tr>';
+  document.getElementById('lgHcHead').innerHTML=hdr;
+  // Build body grouped by team
+  const sortedTeams=[...lgTeams].sort((a,b)=>a.name.localeCompare(b.name));
+  let body='';
+  for(const t of sortedTeams){
+    body+=`<tr><td colspan="${1+maxR}" style="padding:10px 10px 4px;font-size:0.65rem;font-weight:600;letter-spacing:0.08em;color:var(--text-muted);border-bottom:1px solid var(--border)">${esc(t.name)}</td></tr>`;
+    const members=[{name:t.p1,hi:t.p1hi},{name:t.p2,hi:t.p2hi}];
+    for(const m of members){
+      if(!m.name)continue;
+      let row=`<tr><td class="hc-name">${esc(m.name)}</td>`;
+      for(let r=0;r<maxR;r++){
+        const roundMatches=lgMatches.filter(mt=>mt.round===r+1);
+        const courseName=roundMatches.length?roundMatches[0].course:'';
+        const hi=m.hi[r]||0;
+        const ch=courseName?lgGetCH(hi,courseName):0;
+        row+=`<td class="hc-val">${courseName&&hi?ch:'—'}</td>`;
+      }
+      row+='</tr>';
+      body+=row;
+    }
+  }
+  document.getElementById('lgHcBody').innerHTML=body;
+}
+
 // ── Main Render ──
 function renderLeague(){
   renderLgViewControls();
   renderLgStandings();
   renderLgMatches();
+  renderLgHandicaps();
 }
 
 // ── Standings ──
@@ -3261,12 +3333,9 @@ function openLgScorerModal(){
 }
 
 function lgScorerAuthenticated(){
-  // Reuse admin scores UI in a modal-like overlay
-  const c=document.getElementById('lgAdminContent');
-  document.getElementById('lgAdminPanel').style.display='block';
-  document.getElementById('lgAdminTabs').innerHTML='';
-  document.querySelector('#lgAdminPanel .admin-title').textContent='Enter Scores';
+  const c=document.getElementById('lgScorerContent');
   renderLgAdminScores(c);
+  document.getElementById('lgScorerModal').classList.add('show');
 }
 
   </script>
