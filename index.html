@@ -114,7 +114,7 @@
     .league-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:700; color:var(--cream); margin:0 0 4px; }
     .league-header-sub { font-size:0.72rem; color:var(--text-muted); }
 
-    .lg-standings-row { display:grid; grid-template-columns:28px 1fr repeat(4,auto); align-items:center; gap:8px; padding:12px 14px; cursor:pointer; transition:background var(--transition); }
+    .lg-standings-row { display:grid; grid-template-columns:28px 1fr repeat(4,minmax(32px,auto)); align-items:center; gap:8px; padding:12px 14px; cursor:pointer; transition:background var(--transition); }
     @media(hover:hover){.lg-standings-row:hover { background:var(--surface-1); }}
     .lg-standings-row.header { cursor:default; padding:8px 14px; border-bottom:1px solid var(--border); }
     @media(hover:hover){.lg-standings-row.header:hover { background:transparent; }}
@@ -888,6 +888,14 @@
         <div id="lgViewBtns" style="display:flex;gap:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)"></div>
       </div>
 
+      <!-- League Champion Banner -->
+      <div class="champion-banner" id="lgChampBanner">
+        <div class="champion-label" id="lgChampLabel"></div>
+        <div class="champion-team" id="lgChampTeam"></div>
+        <div class="champion-margin" id="lgChampMargin"></div>
+        <div class="champion-individual" id="lgChampIndiv"></div>
+      </div>
+
       <!-- League Standings -->
       <div class="section" id="lgStandingsSection">
         <div class="section-head">
@@ -921,14 +929,21 @@
         </div>
       </div>
 
-      <!-- League Admin -->
-      <div class="admin-panel" id="lgAdminPanel" style="display:none">
-        <div class="admin-header">
-          <div class="admin-title">League Admin</div>
-          <button class="admin-close" id="lgAdminClose">✕</button>
+      <!-- League Admin Overlay -->
+      <div class="admin-overlay" id="lgAdminOverlay">
+        <div class="admin-panel">
+          <div class="admin-topbar">
+            <div class="admin-topbar-left"><div><div class="admin-brand" id="lgAdminBrandName">League Admin</div><div class="admin-brand-sub">Round Robin Dashboard</div></div></div>
+            <button class="admin-close-btn" id="lgAdminClose">← Back to League</button>
+          </div>
+          <div class="admin-tabs" id="lgAdminTabs">
+            <button class="admin-tab active" data-lgtab="config">Config</button>
+            <button class="admin-tab" data-lgtab="teams">Teams</button>
+            <button class="admin-tab" data-lgtab="schedule">Schedule</button>
+            <button class="admin-tab" data-lgtab="scores">Scores</button>
+          </div>
+          <div class="admin-content" id="lgAdminContent"></div>
         </div>
-        <div class="admin-tabs" id="lgAdminTabs"></div>
-        <div class="admin-content" id="lgAdminContent"></div>
       </div>
 
       <!-- League Score Entry FAB -->
@@ -2707,9 +2722,10 @@ function initModeSwitcher(){
         startLgPolling();
       }else{
         document.getElementById('leaguePage').style.display='none';
+        document.getElementById('lgChampBanner').classList.remove('show');
         document.getElementById('lgScorerFab').style.display='none';
         document.getElementById('lgAdminFab').style.display='none';
-        document.getElementById('lgAdminPanel').style.display='none';
+        document.getElementById('lgAdminOverlay').classList.remove('open');
         // Restore all invitational elements
         document.getElementById('mainHeader').style.display='';
         document.getElementById('siteFooter').style.display='';
@@ -2901,9 +2917,34 @@ function renderLgHandicaps(){
   document.getElementById('lgHcBody').innerHTML=body;
 }
 
+
+function renderLgChampion(){
+  const banner=document.getElementById('lgChampBanner');
+  if(lgCurrentView!=='league'){banner.classList.remove('show');return}
+  const standings=lgCalcStandings();
+  const totalMatches=lgTeams.length>0?(lgTeams.length-1):0;
+  const allComplete=standings.length>0&&standings.every(s=>s.played>=totalMatches)&&totalMatches>0;
+  if(!allComplete||!standings.length){banner.classList.remove('show');return}
+  const best=standings[0];
+  const tied=standings.filter(s=>s.won===best.won&&s.lost===best.lost);
+  if(tied.length>1){
+    document.getElementById('lgChampLabel').innerHTML='<span style="font-size:1.4em;vertical-align:middle">🏆</span> '+lgCurrentYear+' League Champions';
+    document.getElementById('lgChampTeam').textContent=tied.map(t=>t.name).join(' & ');
+    document.getElementById('lgChampMargin').textContent='Tied';
+  }else{
+    document.getElementById('lgChampLabel').innerHTML='<span style="font-size:1.4em;vertical-align:middle">🏆</span> '+lgCurrentYear+' League Champion';
+    document.getElementById('lgChampTeam').textContent=best.name;
+    const second=standings[1];
+    const diff=best.won-second.won;
+    document.getElementById('lgChampMargin').textContent='Won by '+diff+' hole'+(diff!==1?'s':'')+' over '+second.name;
+  }
+  document.getElementById('lgChampIndiv').textContent=best.won+' holes won, '+best.lost+' lost, '+best.halved+' halved';
+  banner.classList.add('show');
+}
 // ── Main Render ──
 function renderLeague(){
   renderLgViewControls();
+  renderLgChampion();
   renderLgStandings();
   renderLgMatches();
   renderLgHandicaps();
@@ -2917,7 +2958,6 @@ function renderLgStandings(){
 
   let displayStats=standings;
   if(isRound){
-    // Filter to just this round
     const roundStats={};
     for(const t of lgTeams){roundStats[t.label]={label:t.label,name:t.name,won:0,lost:0,halved:0,ntp:0,played:0}}
     for(const m of lgMatches.filter(m=>m.round===rn)){
@@ -2931,15 +2971,15 @@ function renderLgStandings(){
 
   let h=`<div class="lg-standings-row header">
     <div class="stat-lbl">#</div><div class="stat-lbl" style="text-align:left">Team</div>
-    <div class="stat-lbl">W</div><div class="stat-lbl">L</div><div class="stat-lbl">H</div><div class="stat-lbl">NTP</div>
+    <div class="stat-lbl">W</div><div class="stat-lbl">L</div><div class="stat-lbl">H</div>${isRound?'':`<div class="stat-lbl">NTP</div>`}
   </div>`;
   displayStats.forEach((s,i)=>{
-    const isRoundView=lgCurrentView.startsWith('R');const ntpStr=isRoundView?'—':(s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp)));
+    const ntpStr=s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp));
+    const ntpColor=s.ntp<0?'var(--under-par)':s.ntp>0?'var(--over-par)':'var(--even-par)';
     h+=`<div class="lg-standings-row" onclick="openLgTeamModal('${s.label}')">
       <div class="rank">${i+1}</div>
       <div><div class="team-nm">${esc(s.name)}</div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
-      <div class="stat">${s.won}</div><div class="stat">${s.lost}</div><div class="stat">${s.halved}</div>
-      <div class="stat" style="font-size:0.72rem;color:var(--text-muted)">${ntpStr}</div>
+      <div class="stat">${s.won}</div><div class="stat">${s.lost}</div><div class="stat">${s.halved}</div>${isRound?'':`<div class="stat" style="font-size:0.75rem;color:${ntpColor};${s.ntp<0?'font-weight:700':''}">${ntpStr}</div>`}
     </div>`;
   });
   document.getElementById('lgStandings').innerHTML=h;
@@ -2995,7 +3035,7 @@ function renderLgMatches(){
         const t1Team=lgTeamByLabel(m.t1);const t2Team=lgTeamByLabel(m.t2);
         if(t1Team&&t2Team){
           h+=`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">`;
-          h+=`<div class="lg-player-row header"><div>Player</div><div>HI</div><div>CH</div><div>Gross</div><div>Net</div></div>`;
+          h+=`<div class="lg-player-row header"><div>Player</div><div>HI</div><div>CH</div><div>Gross</div><div>NTP</div></div>`;
           const rIdx=m.round-1;
           const allP=[
             {name:t1Team.p1,hi:t1Team.p1hi[rIdx]||0,f:m.p1f,b:m.p1b,team:t1Name},
@@ -3005,14 +3045,16 @@ function renderLgMatches(){
           ];
           for(const p of allP){
             const ch=m.course?lgGetCH(p.hi,m.course):0;
-            const gross=p.f+p.b;const net=gross-ch;
+            const crs=courses[m.course];
+            const gross=p.f+p.b;const net=gross-ch;const ntp=crs?(net-crs.par):0;
             const hasP=p.f>0||p.b>0;
+            const ntpColor=ntp<0?'var(--under-par)':ntp>0?'var(--over-par)':'var(--even-par)';
             h+=`<div class="lg-player-row">
               <div class="lg-player-name">${esc(p.name)}<span style="font-size:0.6rem;color:var(--text-muted);margin-left:4px">${esc(p.team)}</span></div>
               <div class="lg-player-stat">${p.hi.toFixed(1)}</div>
               <div class="lg-player-stat">${ch}</div>
               <div class="lg-player-stat">${hasP?gross:'—'}</div>
-              <div class="lg-player-stat">${hasP?net:'—'}</div>
+              <div class="lg-player-stat" style="color:${hasP?ntpColor:'inherit'};${hasP&&ntp<0?'font-weight:700':''}">${hasP?fmtPar(ntp):'—'}</div>
             </div>`;
           }
           h+=`</div>`;
@@ -3075,9 +3117,11 @@ function openLgTeamModal(label){
       for(const p of myPlayers){
         const ch=m.course?lgGetCH(p.hi||0,m.course):0;
         const gross=p.f+p.b;const net=gross-ch;
+        const crs2=courses[m.course];const ntp2=crs2?(net-crs2.par):0;
+        const ntpC=ntp2<0?'var(--under-par)':ntp2>0?'var(--over-par)':'var(--even-par)';
         h+=`<div style="display:flex;justify-content:space-between;padding:3px 0;color:var(--text-secondary)">
           <span>${esc(p.name)}</span>
-          <span>${p.f>0||p.b>0?gross+' gross / '+net+' net':'—'}</span>
+          <span>${p.f>0||p.b>0?gross+' gross / <span style="color:'+ntpC+';'+(ntp2<0?'font-weight:700':'')+'">'+ fmtPar(ntp2)+'</span>':'—'}</span>
         </div>`;
       }
       h+=`</div>`;
@@ -3099,14 +3143,17 @@ function openLgAdmin(){
 
 function lgAdminAuthenticated(){
   lgAdminYear=lgCurrentYear;
-  document.getElementById('lgAdminPanel').style.display='block';
-  const tabs=['config','teams','schedule','scores'];
-  document.getElementById('lgAdminTabs').innerHTML=tabs.map(t=>
-    `<button class="admin-tab${t===lgAdminActiveTab?' active':''}" onclick="lgAdminActiveTab='${t}';renderLgAdminTab()">${t.charAt(0).toUpperCase()+t.slice(1)}</button>`
-  ).join('');
-  document.getElementById('lgAdminClose').onclick=()=>{document.getElementById('lgAdminPanel').style.display='none'};
+  document.getElementById('lgAdminBrandName').textContent=lgName+' Admin';
+  document.getElementById('lgAdminOverlay').classList.add('open');
+  document.body.style.overflow='hidden';
+  document.querySelectorAll('#lgAdminTabs .admin-tab').forEach(t=>{
+    t.classList.toggle('active',t.dataset.lgtab===lgAdminActiveTab);
+    t.onclick=()=>{lgAdminActiveTab=t.dataset.lgtab;document.querySelectorAll('#lgAdminTabs .admin-tab').forEach(b=>b.classList.remove('active'));t.classList.add('active');renderLgAdminTab()};
+  });
+  document.getElementById('lgAdminClose').onclick=closeLgAdmin;
   renderLgAdminTab();
 }
+function closeLgAdmin(){document.getElementById('lgAdminOverlay').classList.remove('open');document.body.style.overflow='';lgLastCSV='';loadLgYear()}
 
 function renderLgAdminTab(){
   const c=document.getElementById('lgAdminContent');
