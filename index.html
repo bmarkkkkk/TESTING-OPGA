@@ -110,7 +110,7 @@
     /* ── League Styles ── */
     #leaguePage { display:none; }
     #leaguePage.show { display:block; }
-    .league-header { text-align:center; margin-bottom:20px; }
+    .league-header { text-align:center; padding:36px 0 20px; }
     .league-header h1 { font-family:'Cormorant Garamond',serif; font-size:1.8rem; font-weight:700; color:var(--cream); margin:0 0 4px; }
     .league-header-sub { font-size:0.72rem; color:var(--text-muted); }
 
@@ -876,15 +876,16 @@
     <!-- ══════ LEAGUE PAGE ══════ -->
     <div id="leaguePage">
       <div class="league-header">
+        <div class="header-badge" id="lgBadge"><span class="live-dot"></span>Live Scoring</div>
         <h1 id="leagueName">OPGA Round Robin</h1>
         <div class="league-header-sub" id="leagueSubtitle">Round Robin · Match Play</div>
       </div>
 
       <!-- League Year Selector -->
-      <div id="lgYearControls" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:16px"></div>
+      <div id="lgYearControls" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
 
       <!-- League View Controls -->
-      <div id="lgViewControls" style="display:flex;justify-content:center;gap:0;margin-bottom:20px">
+      <div id="lgViewControls" style="display:flex;justify-content:center;gap:0;margin-bottom:24px">
         <div id="lgViewBtns" style="display:flex;gap:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)"></div>
       </div>
 
@@ -3030,8 +3031,24 @@ function renderLgChampion(){
   document.getElementById('lgChampIndiv').textContent=best.won+' holes won, '+best.lost+' lost, '+best.halved+' halved';
   banner.classList.add('show');
 }
+
+function renderLgBadge(){
+  const badge=document.getElementById('lgBadge');
+  const standings=lgCalcStandings();
+  const totalMatches=lgTeams.length>0?(lgTeams.length-1):0;
+  const allComplete=standings.length>0&&standings.every(s=>s.played>=totalMatches)&&totalMatches>0;
+  if(allComplete){
+    badge.innerHTML='<span class="live-dot"></span>Final Results';
+    badge.classList.add('final');
+  }else{
+    badge.innerHTML='<span class="live-dot"></span>Live Scoring';
+    badge.classList.remove('final');
+  }
+}
+
 // ── Main Render ──
 function renderLeague(){
+  renderLgBadge();
   renderLgViewControls();
   renderLgChampion();
   renderLgStandings();
