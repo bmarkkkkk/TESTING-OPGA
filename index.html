@@ -884,15 +884,13 @@
       </div>
 
       <!-- League Year Selector -->
-      <div id="lgYearControls" style="display:flex;justify-content:center;gap:8px;flex-wrap:wrap;margin-bottom:12px"></div>
+      <div class="controls" id="lgYearControls" style="display:none"><div class="ctrl-group" id="lgYearBtns"></div></div>
 
       <!-- League View Controls -->
-      <div id="lgViewControls" style="display:flex;justify-content:center;gap:0;margin-bottom:24px">
-        <div id="lgViewBtns" style="display:flex;gap:0;border-radius:var(--radius);overflow:hidden;border:1px solid var(--border)"></div>
-      </div>
+      <div class="controls" id="lgViewControls"><div class="ctrl-group" id="lgViewBtns"></div></div>
 
       <!-- League Champion Banner -->
-      <div class="champion-banner" id="lgChampBanner">
+      <div class="champion-banner" id="lgChampBanner" style="cursor:pointer">
         <div class="champion-label" id="lgChampLabel"></div>
         <div class="champion-team" id="lgChampTeam"></div>
         <div class="champion-margin" id="lgChampMargin"></div>
@@ -1317,7 +1315,7 @@ function render(){
 }
 
 function renderChampionState(complete){
-  const badge=document.querySelector('.header-badge');
+  const badge=document.querySelector('#mainHeader .header-badge');
   const banner=document.getElementById('championBanner');
 
   // Badge: "Final Results" if full tournament complete, or current round is complete for all players
@@ -2100,6 +2098,7 @@ let allYearsData = {}; // {year: {players, courses, roundMap}}
 let recordsOpen = false;
 
 function showRecordsPage(){
+  if(lgMode==='league')return;
   recordsOpen = true;
   // Clear current year cache so we get fresh live data
   delete allYearsData[currentYear];
@@ -2113,6 +2112,7 @@ function showRecordsPage(){
 }
 
 function hideRecordsPage(){
+  if(lgMode==='league')return;
   recordsOpen = false;
   document.getElementById('recordsPage').style.display='none';
   // Restore main content
@@ -2724,7 +2724,8 @@ function initModeSwitcher(){
       lgMode=mode;
       if(mode==='league'){
         // Hide all invitational elements
-        document.querySelectorAll('#mainHeader,#yearControls,#courseInfoCard,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,#siteFooter').forEach(el=>{if(el)el.style.display='none'});
+        document.querySelectorAll('#mainHeader,#yearControls,#courseInfoCard,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,#siteFooter,#recordsPage,#lgYearControls').forEach(el=>{if(el)el.style.display='none'});
+        recordsOpen=false;
         document.querySelectorAll('.controls').forEach(el=>el.style.display='none');
         document.getElementById('scoreEntryFab').style.display='none';
         const invAdminFab=document.querySelector('.admin-fab:not(#lgAdminFab)');if(invAdminFab)invAdminFab.style.display='none';
@@ -2741,6 +2742,8 @@ function initModeSwitcher(){
         document.getElementById('lgAdminFab').style.display='none';
         document.getElementById('lgAdminOverlay').classList.remove('open');
         // Restore all invitational elements
+        document.getElementById('recordsPage').style.display='none';
+        recordsOpen=false;
         document.getElementById('mainHeader').style.display='';
         document.getElementById('siteFooter').style.display='';
         document.getElementById('championBanner').style.display='';
@@ -2867,7 +2870,9 @@ function lgCalcStandings(){
 
 // ── Year Selector ──
 function renderLgYearSelector(){
-  const c=document.getElementById('lgYearControls');
+  const wrap=document.getElementById('lgYearControls');
+  const c=document.getElementById('lgYearBtns');
+  if(lgYears.length>1){wrap.style.display='flex'}else{wrap.style.display='none'}
   c.innerHTML=lgYears.map(y=>`<button class="ctrl-btn${y===lgCurrentYear?' active':''}" data-lgyear="${y}">${y}</button>`).join('');
   c.querySelectorAll('.ctrl-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
@@ -2960,6 +2965,7 @@ function renderLgChampion(){
   }
   document.getElementById('lgChampIndiv').textContent=best.won+' holes won, '+best.lost+' lost, '+best.halved+' halved';
   banner.classList.add('show');
+  banner.onclick=()=>{if(tied.length===1)openLgTeamModal(best.label)};
 }
 
 function renderLgBadge(){
@@ -3077,7 +3083,7 @@ function renderLgMatches(){
         const t1Team=lgTeamByLabel(m.t1);const t2Team=lgTeamByLabel(m.t2);
         if(t1Team&&t2Team){
           h+=`<div style="margin-top:12px;border-top:1px solid var(--border);padding-top:10px">`;
-          h+=`<div class="lg-player-row header"><div>Player</div><div>HI</div><div>CH</div><div>Gross</div><div>NTP</div></div>`;
+          h+=`<div class="lg-player-row header"><div>Player</div><div style="text-align:center">HI</div><div style="text-align:center">CH</div><div style="text-align:center">Gross</div><div style="text-align:center">NTP</div></div>`;
           const rIdx=m.round-1;
           const allP=[
             {name:t1Team.p1,hi:t1Team.p1hi[rIdx]||0,f:m.p1f,b:m.p1b,team:t1Name},
@@ -3292,8 +3298,11 @@ async function saveLgConfig(){
     }
   }catch(e){}
   lgYears=years;lgName=name;
+  document.getElementById('leagueName').textContent=lgName;
   if(ok)showAdminToast('League config saved');
-  lgLastCSV='';loadLeague();
+  renderLgYearSelector();
+  if(!lgYears.includes(lgCurrentYear))lgCurrentYear=lgYears[lgYears.length-1];
+  lgLastCSV='';loadLgYear();
 }
 
 function renderLgAdminTeams(c){
