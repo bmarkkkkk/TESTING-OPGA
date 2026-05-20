@@ -2888,7 +2888,7 @@ function lgCalcStandings(){
 function renderLgYearSelector(){
   const wrap=document.getElementById('lgYearControls');
   const c=document.getElementById('lgYearBtns');
-  if(lgYears.length>1){wrap.style.display='flex'}else{wrap.style.display='none'}
+  wrap.style.display=lgYears.length?'flex':'none'
   c.innerHTML=lgYears.map(y=>`<button class="ctrl-btn${y===lgCurrentYear?' active':''}" data-lgyear="${y}">${y}</button>`).join('');
   c.querySelectorAll('.ctrl-btn').forEach(btn=>{
     btn.addEventListener('click',()=>{
