@@ -738,7 +738,7 @@
       <button class="mode-btn active" data-mode="invitational">Invitational</button>
       <button class="mode-btn" data-mode="league">League</button>
     </nav>
-    <header class="header">
+    <header class="header" id="mainHeader">
       <div class="header-badge"><span class="live-dot"></span>Live Scoring</div>
       <h1 id="siteName">OPGA Invitational</h1>
       <div class="header-sub" id="lastUpdate">Connecting…</div>
@@ -2068,6 +2068,7 @@ function hideRecordsPage(){
   document.getElementById('highlights').style.display='none';
   document.getElementById('recordsLinkWrap').style.display='block';
   document.getElementById('scoreEntryFab').style.display='flex';
+  checkLeagueExists();
   if(infoTabs.length) document.getElementById('infoTabsWrap').style.display='flex';
   lastCSV='';
   render();
@@ -2664,7 +2665,7 @@ function initModeSwitcher(){
       btn.classList.add('active');
       lgMode=mode;
       if(mode==='league'){
-        document.querySelectorAll('#yearControls,.controls,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,.score-entry-fab:not(#lgScorerFab),.admin-fab:not(#lgAdminFab)').forEach(el=>{if(el)el.style.display='none'});
+        document.querySelectorAll('#mainHeader,#yearControls,.controls,#championBanner,#countdownBanner,#countdownLive,#highlights,#teamSection,#chartSection,#skinsSection,#individualSection,#historySection,#coursesSection,#hcSection,#infoTabsWrap,#recordsLinkWrap,#courseInfoCard,.score-entry-fab:not(#lgScorerFab),.admin-fab:not(#lgAdminFab),#siteFooter').forEach(el=>{if(el)el.style.display='none'});
         document.getElementById('leaguePage').style.display='block';
         document.getElementById('lgScorerFab').style.display='';
         document.getElementById('lgAdminFab').style.display='';
@@ -2675,6 +2676,8 @@ function initModeSwitcher(){
         document.getElementById('leaguePage').style.display='none';
         document.getElementById('lgScorerFab').style.display='none';
         document.getElementById('lgAdminFab').style.display='none';
+        document.getElementById('mainHeader').style.display='';
+        document.getElementById('siteFooter').style.display='';
         stopLgPolling();
         lastCSV='';load();
       }
@@ -2712,8 +2715,7 @@ async function loadLgYear(){
       const p1=(r[1]||'').trim();const p2=(r[2]||'').trim();
       const nameOverride=(r[3]||'').trim();
       const name=nameOverride||(p1&&p2?p1.split(' ')[0]+'/'+p2.split(' ')[0]:(p1||p2||'Team '+label));
-      const p1hi=[parseFloat(r[4])||0,parseFloat(r[5])||0,parseFloat(r[6])||0];
-      const p2hi=[parseFloat(r[7])||0,parseFloat(r[8])||0,parseFloat(r[9])||0];
+      const p1hi=[];const p2hi=[];for(let ri=4;ri<7&&ri<r.length;ri++)p1hi.push(parseFloat(r[ri])||0);for(let ri=7;ri<10&&ri<r.length;ri++)p2hi.push(parseFloat(r[ri])||0);
       lgTeams.push({label,p1,p2,name,p1hi,p2hi});
     }
   }
@@ -2750,7 +2752,7 @@ function stopLgPolling(){if(lgPollInterval){clearInterval(lgPollInterval);lgPoll
 function lgTeamByLabel(label){return lgTeams.find(t=>t.label===label)}
 function lgTeamName(label){const t=lgTeamByLabel(label);return t?t.name:label}
 function lgGetCH(hi,courseName){const c=courses[courseName];if(!c)return 0;return Math.round(hi*(c.slope/113)+(parseFloat(c.rating)-c.par))}
-function lgTotalRounds(){return Math.max(...lgMatches.map(m=>m.round),0)}
+function lgTotalRounds(){return lgMatches.length?Math.max(...lgMatches.map(m=>m.round)):0}
 function lgMatchHasScores(m){return(m.t1fw+m.t2fw+m.t1bw+m.t2bw)>0}
 
 function lgCalcStandings(){
@@ -2853,7 +2855,7 @@ function renderLgStandings(){
     <div class="stat-lbl">W</div><div class="stat-lbl">L</div><div class="stat-lbl">H</div><div class="stat-lbl">NTP</div>
   </div>`;
   displayStats.forEach((s,i)=>{
-    const ntpStr=s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp));
+    const isRoundView=lgCurrentView.startsWith('R');const ntpStr=isRoundView?'—':(s.ntp===0?'E':(s.ntp>0?'+'+s.ntp:String(s.ntp)));
     h+=`<div class="lg-standings-row" onclick="openLgTeamModal('${s.label}')">
       <div class="rank">${i+1}</div>
       <div><div class="team-nm">${esc(s.name)}</div><div class="team-sub">${s.played} match${s.played!==1?'es':''} played</div></div>
@@ -3069,7 +3071,7 @@ async function saveLgConfig(){
   const years=[...yearInputs].map(i=>i.value.trim()).filter(Boolean);
   if(!years.length){showAdminToast('Need at least one year',true);return}
   let ok=await writeRawToSheet('League Config!A1:D1',[['Year','League Name','Scorer PIN','Admin PIN']]);
-  ok=await writeRawToSheet('League Config!A2:B2',[[years[0],name]])&&ok;
+  ok=await writeRawToSheet('League Config!B2',[[name]])&&ok;
   const yearVals=years.map(y=>[y]);
   ok=await writeRawToSheet('League Config!A2:A'+(years.length+1),yearVals)&&ok;
   // Clear extra rows
